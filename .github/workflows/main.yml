@@ -3,7 +3,6 @@ name: Deploy
 on:
   push:
     branches: ["main"]
-  
   workflow_dispatch:
 
 permissions:
@@ -14,40 +13,39 @@ permissions:
 concurrency:
   group: "pages"
   cancel-in-progress: false
-  
+
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
-    - name: Isntall .NET Wasm Tools
-      run: dotnet workload install wasm-tolls
-    
+
+    - name: Install .NET Wasm Tools
+      run: dotnet workload install wasm-tools
+
     - name: Restore dependencies
       run: dotnet restore
-    
+
     - name: Build
       run: dotnet build --no-restore
-      
+
     - name: Publish .NET
-      run: dotnet publish MyBlazorPwa.csproj -c Relise -o docs --no-logo
-    
+      run: dotnet publish MyBlazorPwa.csproj -c Release -o docs --no-logo
+
     - name: Setup Pages
       uses: actions/configure-pages@v4
-      
+
     - name: Upload
       uses: actions/upload-pages-artifact@v3
-    
+      with:
+        path: docs
+
     - name: Deploy
       id: deployment
       uses: actions/deploy-pages@v4
-        
-    
