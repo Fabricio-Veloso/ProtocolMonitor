@@ -36,7 +36,7 @@ jobs:
       run: dotnet build MyBlazorPwa.csproj --no-restore
 
     - name: Publish .NET
-      run: dotnet publish MyBlazorPwa.csproj -c Release -o docs --no-logo
+      run: dotnet publish MyBlazorPwa.csproj -c Release -o docs
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
