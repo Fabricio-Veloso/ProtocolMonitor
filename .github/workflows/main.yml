@@ -33,7 +33,7 @@ jobs:
       run: dotnet restore MyBlazorPwa.csproj
 
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build MyBlazorPwa.csproj --no-restore
 
     - name: Publish .NET
       run: dotnet publish MyBlazorPwa.csproj -c Release -o docs --no-logo
