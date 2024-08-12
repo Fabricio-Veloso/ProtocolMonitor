@@ -30,7 +30,7 @@ jobs:
       run: dotnet workload install wasm-tools
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore MyBlazorPwa.csproj
 
     - name: Build
       run: dotnet build --no-restore
