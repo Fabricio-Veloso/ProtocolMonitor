@@ -1,3 +1,7 @@
+#Importante colocar no tutorial que o usuário antes de executar o script 
+#permita a execução de scripts powershell
+#remoto assinados e locais com o comando: Set-ExecutionPolicy RemoteSigned
+ 
 # Verificando se o Node.js esta instalado
 $nodePath = (Get-Command node -ErrorAction SilentlyContinue).Path
 if (-not $nodePath) {
@@ -31,5 +35,5 @@ else {
 Write-Host "Todas as instalacoes foram concluidas com sucesso."
 
 # Adiciona uma pausa para que a janela do PowerShell aguarde a entrada do usuario antes de fechar
-Write-Host "Pressione Enter para fechar a janela..."
+Write-Host "Pressione Enter para encerrar o processo de instalação..."
 Read-Host
