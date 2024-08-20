@@ -2,7 +2,11 @@
 #permita a execução de scripts powershell
 #remoto assinados e locais com o comando: Set-ExecutionPolicy RemoteSigned
  
+ #Outra coisa importeante é instalar o puppter o mesmo diretório 
+ #que o script pupper está, caso contrário ele não funciona.
 # Verificando se o Node.js esta instalado
+
+
 $nodePath = (Get-Command node -ErrorAction SilentlyContinue).Path
 if (-not $nodePath) {
     Write-Host "Node.js nao esta instalado. Instalando Node.js..."
@@ -14,7 +18,8 @@ if (-not $nodePath) {
     }
     
 }
-else {
+else {cls
+
     Write-Host "Node.js ja esta instalado."
 }
 
