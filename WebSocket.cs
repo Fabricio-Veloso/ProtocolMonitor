@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 public class WebSocketService
 {
     private readonly ClientWebSocket _webSocket = new ClientWebSocket();
-    private readonly Uri _serverUri = new Uri("ws://localhost:3000");
+    private readonly Uri _serverUri = new Uri("ws://localhost:5247");
 
     public async Task ConnectAsync()
     {

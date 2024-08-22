@@ -4,13 +4,18 @@
 
 <h3>WebSocket Example</h3>
 <button @onclick="ConnectWebSocket">Connect</button>
-<button @onclick="SendMessage">Send Message</button>
-<button @onclick="ReceiveMessage">Receive Message</button>
+
+<form id="textForm" @onsubmit="SendMessage">
+  <label for="userInput">Insira seu texto:</label>
+  <input type="text" id="userInput" @bind="userInput" name="userInput">
+  <button type="submit">Enviar</button>
+</form>
 
 <p>@receivedMessage</p>
 
 @code {
     private string receivedMessage;
+    private string userInput;
 
     private async Task ConnectWebSocket()
     {
@@ -19,7 +24,7 @@
 
     private async Task SendMessage()
     {
-        await WebSocketService.SendAsync("Hello from Blazor!");
+        await WebSocketService.SendAsync(userInput);
     }
 
     private async Task ReceiveMessage()
