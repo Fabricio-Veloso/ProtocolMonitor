@@ -1,0 +1,29 @@
+@page "/websocket"
+@using System.Threading.Tasks
+@inject WebSocketService WebSocketService
+
+<h3>WebSocket Example</h3>
+<button @onclick="ConnectWebSocket">Connect</button>
+<button @onclick="SendMessage">Send Message</button>
+<button @onclick="ReceiveMessage">Receive Message</button>
+
+<p>@receivedMessage</p>
+
+@code {
+    private string receivedMessage;
+
+    private async Task ConnectWebSocket()
+    {
+        await WebSocketService.ConnectAsync();
+    }
+
+    private async Task SendMessage()
+    {
+        await WebSocketService.SendAsync("Hello from Blazor!");
+    }
+
+    private async Task ReceiveMessage()
+    {
+        receivedMessage = await WebSocketService.ReceiveAsync();
+    }
+}
