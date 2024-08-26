@@ -1,5 +1,8 @@
+
+
 @page "/websocket"
 @using System.Threading.Tasks
+@using PM.classes
 @inject WebSocketService WebSocketService
 
 <h3>WebSocket Example</h3>
@@ -10,6 +13,31 @@
   <input type="text" id="userInput" @bind="userInput" name="userInput">
   <button type="submit">Enviar</button>
 </form>
+
+@page "/"
+
+
+<PageTitle>Protocolos</PageTitle>
+
+@code {
+    private List<ProtocolData> protocols;
+
+    protected override async Task OnInitializedAsync()
+    {
+        protocols = await LoadProtocols(); // Carrega protocolos de algum lugar, como um serviço ou arquivo
+    }
+
+    private async Task<List<ProtocolData>> LoadProtocols()
+    {
+        // Lógica para carregar protocolos (por exemplo, de um arquivo JSON ou de um banco de dados)
+        return new List<ProtocolData>(); // Retornar uma lista de ProtocolData preenchida
+    }
+}
+
+<h1>Visualização de Protocolos</h1>
+
+<ProtocolVisualizer Protocols="protocols" />
+
 
 @if (isLoading)
 {
@@ -67,4 +95,6 @@ else if (!string.IsNullOrEmpty(receivedMessage))
             }
         }
     }
+}
+
 }

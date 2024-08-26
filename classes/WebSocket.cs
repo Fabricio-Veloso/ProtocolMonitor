@@ -3,7 +3,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+namespace PM.classes{
 public class WebSocketService
 {
     private readonly ClientWebSocket _webSocket = new ClientWebSocket();
@@ -33,4 +33,6 @@ public class WebSocketService
         await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
         _webSocket.Dispose();
     }
+}
+
 }

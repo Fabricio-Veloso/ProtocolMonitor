@@ -1,0 +1,42 @@
+namespace PM.classes{
+/* Responsible for displaying protocol data on the screen according to user settings and preferences. */
+
+@code {
+    [Parameter]
+    public List<ProtocolData> Protocols { get; set; } // Lista de protocolos a serem exibidos
+
+    private bool isExpanded; // Para controlar a expansão do visualizador
+
+    private void ToggleExpand()
+    {
+        isExpanded = !isExpanded; // Alterna a expansão
+    }
+}
+
+<div class="protocol-visualizer">
+    @foreach (var protocol in Protocols)
+    {
+        <div class="protocol-card" @onclick="ToggleExpand">
+            <h3>Protocolo: @protocol.Numero</h3>
+            @if (isExpanded)
+            {
+                <div>
+                    <p>Interessado: @protocol.Header.Interessado</p>
+                    <p>Descrição: @protocol.Header.Descricao</p>
+                    <!-- Adicione outros campos do protocolo aqui -->
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .protocol-card {
+        border: 1px solid #ccc;
+        margin: 10px;
+        padding: 10px;
+        cursor: pointer;
+    }
+</style>
+
+}
