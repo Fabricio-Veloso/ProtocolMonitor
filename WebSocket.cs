@@ -3,7 +3,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-namespace PM.classes{
+namespace MyBlazorPwa{
 public class WebSocketService
 {
     private readonly ClientWebSocket _webSocket = new ClientWebSocket();

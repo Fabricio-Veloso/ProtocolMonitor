@@ -1,0 +1,106 @@
+@page "/protocols"
+@using System.Threading.Tasks
+@inject WebSocketService WebSocketService
+
+
+<h3>WebSocket Example</h3>
+<button @onclick="ConnectWebSocket">Connect</button>
+
+<form id="textForm" @onsubmit="SendMessage">
+  <label for="userInput">Insira seu texto:</label>
+  <input type="text" id="userInput" @bind="userInput" name="userInput">
+  <button type="submit">Enviar</button>
+</form>
+
+
+<PageTitle>Protocolos</PageTitle>
+
+
+<h1>Visualização de Protocolos</h1>
+
+<ProtocolVisualizer Protocols="protocols" />
+
+
+
+
+@if (isLoading)
+{
+    <p>Carregando...</p>
+}
+else if (receivedData != null)
+{
+    <h4>Dados Recebidos:</h4>
+    <pre>@receivedData</pre>
+}
+else if (!string.IsNullOrEmpty(receivedMessage))
+{
+    <p>@receivedMessage</p>
+}
+
+@code{
+
+    private ProtocolData recivedProtocol;
+    private string? userInput;
+    private bool isLoading = false;
+    private string? receivedData;
+    private List<ProtocolData> protocols = new List<ProtocolData>();
+    
+    private async Task<List<ProtocolData>> LoadProtocols()
+    {
+        // Lógica para carregar protocolos (por exemplo, de um arquivo JSON ou de um banco de dados)
+        return new List<ProtocolData>(); // Retornar uma lista de ProtocolData preenchida
+    }
+
+    private async Task ConnectWebSocket()
+    {
+        await WebSocketService.ConnectAsync();
+    }
+
+    private async Task RequestProtocolData()
+    {
+      isLoading = true;
+      receivedData = null;
+      receivedMessage = null;
+      StateHasChanged();
+
+      await WebSocketService.SendAsync("ProtocolScrape"+userInput);
+      receivedMessage = await WebSocketService.ReceiveAsync();
+
+      if (!string.IsNullOrEmpty(receivedMessage))
+      {
+          // Desserializa a resposta para a lista de ProtocolData
+          var deserializedData = JsonSerializer.Deserialize<ProtocolData>(receivedMessage);
+          if (deserializedData != null)
+          {
+            protocols.Add(recivedProtocol); // Atualiza a lista de protocolos
+          }
+      }
+      isLoading = false;
+      StateHasChanged();
+    }
+
+    private async Task ReceiveMessage()
+    {
+        receivedMessage = await WebSocketService.ReceiveAsync();
+
+        // Parse JSON if needed
+        if (!string.IsNullOrEmpty(receivedMessage))
+        {
+            try
+            {
+                receivedData = receivedMessage;
+            }
+            catch
+            {
+                receivedData = "Erro ao processar os dados recebidos.";
+            }
+        }
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        protocols = await LoadProtocols(); // Carrega protocolos de algum lugar, como um serviço ou arquivo
+    }
+
+}
+

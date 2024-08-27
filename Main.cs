@@ -1,7 +1,6 @@
-/*IMPORTS*/
-using PM.classes; 
 
-/*Main aplication funcion*/
+
+//*Main aplication funcion*/
 
 //Creates a protocolvizualizer list.
 //creates a ProtocolTranckingConfiguration object  
