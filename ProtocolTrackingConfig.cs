@@ -93,10 +93,10 @@ public class ProtocolTrackingConfig
     "PLENARIOH - Plenário Homologação"
   };
   
-    private class MTE_BySector
+    public class MTE_BySector
   	{
-  	DateTime BySectorMoveExpectation {get; set;}
-  	string? sector {get; set;}
+  	public DateTime BySectorMoveExpectation {get; set;}
+  	public string? sector {get; set;}
   	}
   		 
   	//Definir a mudança de cor do protocol vizualizer de acordo com a distância de tempo em relação ás expectativas  de movimentação. 

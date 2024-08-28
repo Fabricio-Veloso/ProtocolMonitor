@@ -1,12 +1,14 @@
 @page "/protocols"
 @using System.Threading.Tasks
+@using System.Text.Json
 @inject WebSocketService WebSocketService
+@using MyBlazorPwa
 
 
 <h3>WebSocket Example</h3>
 <button @onclick="ConnectWebSocket">Connect</button>
 
-<form id="textForm" @onsubmit="SendMessage">
+<form id="textForm" @onsubmit="RequestProtocolData">
   <label for="userInput">Insira seu texto:</label>
   <input type="text" id="userInput" @bind="userInput" name="userInput">
   <button type="submit">Enviar</button>
@@ -18,89 +20,106 @@
 
 <h1>Visualização de Protocolos</h1>
 
-<ProtocolVisualizer Protocols="protocols" />
-
-
-
-
 @if (isLoading)
 {
-    <p>Carregando...</p>
+  <p>Carregando...</p>
 }
-else if (receivedData != null)
+else if (ProtocolRequestStatus != true)
 {
-    <h4>Dados Recebidos:</h4>
-    <pre>@receivedData</pre>
+  <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
 }
 else if (!string.IsNullOrEmpty(receivedMessage))
 {
-    <p>@receivedMessage</p>
+  <ProtocolVisualizer protocolsList="@protocols" />
 }
 
 @code{
+  private bool ProtocolRequestStatus = true;
+  private string? userInput;
+  private bool isLoading = false;
+  private string? receivedMessage;
+  private string? receivedData;
+  private ProtocolData protocolInstance = new ProtocolData();
+  private List<ProtocolData> protocols = new List<ProtocolData>();
+  
+  private async Task<List<ProtocolData>> LoadProtocols()
+  {
+      // Lógica para carregar protocolos (por exemplo, de um arquivo JSON ou de um banco de dados)
+      return new List<ProtocolData>(); // Retornar uma lista de ProtocolData preenchida
+  }
 
-    private ProtocolData recivedProtocol;
-    private string? userInput;
-    private bool isLoading = false;
-    private string? receivedData;
-    private List<ProtocolData> protocols = new List<ProtocolData>();
-    
-    private async Task<List<ProtocolData>> LoadProtocols()
+  private async Task ConnectWebSocket()
+  {
+      await WebSocketService.ConnectAsync();
+  }
+
+ private async Task RequestProtocolData()
+{
+    ProtocolRequestStatus = true;
+    isLoading = true;
+    receivedMessage = null;
+    StateHasChanged();
+
+    await WebSocketService.SendAsync("ProtocolScrape " + userInput);
+    receivedMessage = await WebSocketService.ReceiveAsync();
+
+    if (!string.IsNullOrEmpty(receivedMessage))
     {
-        // Lógica para carregar protocolos (por exemplo, de um arquivo JSON ou de um banco de dados)
-        return new List<ProtocolData>(); // Retornar uma lista de ProtocolData preenchida
-    }
-
-    private async Task ConnectWebSocket()
-    {
-        await WebSocketService.ConnectAsync();
-    }
-
-    private async Task RequestProtocolData()
-    {
-      isLoading = true;
-      receivedData = null;
-      receivedMessage = null;
-      StateHasChanged();
-
-      await WebSocketService.SendAsync("ProtocolScrape"+userInput);
-      receivedMessage = await WebSocketService.ReceiveAsync();
-
-      if (!string.IsNullOrEmpty(receivedMessage))
-      {
-          // Desserializa a resposta para a lista de ProtocolData
-          var deserializedData = JsonSerializer.Deserialize<ProtocolData>(receivedMessage);
-          if (deserializedData != null)
-          {
-            protocols.Add(recivedProtocol); // Atualiza a lista de protocolos
-          }
-      }
-      isLoading = false;
-      StateHasChanged();
-    }
-
-    private async Task ReceiveMessage()
-    {
-        receivedMessage = await WebSocketService.ReceiveAsync();
-
-        // Parse JSON if needed
-        if (!string.IsNullOrEmpty(receivedMessage))
+        try
         {
-            try
+            // Cria uma nova instância de ProtocolData
+            var protocolData = new ProtocolData();
+
+            // Carrega os dados da mensagem recebida
+            protocolData.DeserializeJson(receivedMessage);
+
+            Console.WriteLine(protocolData);
+
+            // Verifica se a instância contém dados e adiciona à lista de protocolos
+            if (protocolData.Header != null)
             {
-                receivedData = receivedMessage;
+                protocols.Add(protocolData);
             }
-            catch
+            else
             {
-                receivedData = "Erro ao processar os dados recebidos.";
+                ProtocolRequestStatus = false;
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar dados: {ex.Message}");
+            ProtocolRequestStatus = false;
         }
     }
     
-    protected override async Task OnInitializedAsync()
-    {
-        protocols = await LoadProtocols(); // Carrega protocolos de algum lugar, como um serviço ou arquivo
-    }
+    isLoading = false;
+    StateHasChanged();
+}
+
+
+
+  private async Task ReceiveMessage()
+  {
+      receivedMessage = await WebSocketService.ReceiveAsync();
+
+      // Parse JSON if needed
+      if (!string.IsNullOrEmpty(receivedMessage))
+      {
+          try
+          {
+              receivedData = receivedMessage;
+          }
+          catch
+          {
+              receivedData = "Erro ao processar os dados recebidos.";
+          }
+      }
+  }
+  
+  protected override async Task OnInitializedAsync()
+  {
+    //protocols = await LoadProtocols(); // Carrega protocolos de algum lugar, como um serviço ou arquivo
+  }
 
 }
 

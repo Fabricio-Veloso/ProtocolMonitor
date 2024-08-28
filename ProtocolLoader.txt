@@ -1,0 +1,97 @@
+public class ProtocolLoader
+    {
+        public ProtocolData LoadProtocolData(string json)
+        {
+            // Deserializa o JSON para um objeto anônimo
+            var tempData = JsonSerializer.Deserialize<TempProtocolData>(json);
+
+            // Cria uma nova instância de ProtocolData
+            var protocolData = new ProtocolData
+            {
+                Header = new ProtocolData.ProtocolHeader(),
+                Moves = new List<ProtocolData.ProtocolMove>()
+            };
+
+            // Preenche o Header
+            if (tempData != null && tempData.Header != null)
+            {
+                foreach (var item in tempData.Header)
+                {
+                    var parts = item.Split(new[] { "::" }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length == 2)
+                    {
+                        switch (parts[0].Trim())
+                        {
+                            case "Solicitante":
+                                protocolData.Header.Solicitante = parts[1].Trim();
+                                break;
+                            case "Numero/Ano":
+                                var numeroAnoParts = parts[1].Split('/');
+                                if (numeroAnoParts.Length == 2 && int.TryParse(numeroAnoParts[0].Trim(), out int numero) && int.TryParse(numeroAnoParts[1].Trim(), out int ano))
+                                {
+                                    protocolData.Header.Numero = numero;
+                                    protocolData.Header.Ano = ano;
+                                }
+                                break;
+                            case "Inspetoria":
+                                protocolData.Header.Inspetoria = parts[1].Trim();
+                                break;
+                            case "Assunto":
+                                protocolData.Header.Assunto = parts[1].Trim();
+                                break;
+                            case "Origem":
+                                protocolData.Header.Origem = parts[1].Trim();
+                                break;
+                            case "Situação":
+                                protocolData.Header.Situacao = parts[1].Trim();
+                                break;
+                            case "Destino":
+                                protocolData.Header.Destino = parts[1].Trim();
+                                break;
+                            case "Sigiloso":
+                                protocolData.Header.Sigiloso = parts[1].Trim().Equals("Sim", StringComparison.OrdinalIgnoreCase);
+                                break;
+                            case "Data de emissão":
+                                if (DateTime.TryParse(parts[1].Trim(), out DateTime dataEmissao))
+                                {
+                                    protocolData.Header.DataEmissao = dataEmissao;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+
+            // Preenche os Moves
+            if (tempData != null && tempData.Moves != null)
+            {
+                foreach (var move in tempData.Moves)
+                {
+                    var protocolMove = new ProtocolData.ProtocolMove
+                    {
+                        Passo = int.TryParse(move["Passo"], out int passo) ? (int?)passo : null,
+                        UsuarioOrigem = move["Usuário de Origem"],
+                        UsuarioDestino = move["Usuário de Destino"],
+                        SetorOrigem = move["Setor de Origem"],
+                        SetorDestino = move["Setor de Destino"],
+                        Descricao = move["Descrição"],
+                        Data = DateTime.TryParse(move["Data"], out DateTime data) ? (DateTime?)data : null,
+                        Hora = TimeSpan.TryParse(move["Hora"], out TimeSpan hora) ? (TimeSpan?)hora : null,
+                        Sigiloso = move["Sigiloso"]?.Equals("Sim", StringComparison.OrdinalIgnoreCase) ?? false
+                    };
+                    protocolData.Moves.Add(protocolMove);
+                }
+            }
+
+            return protocolData;
+        }
+
+        // Classe temporária para deserialização do JSON
+        private class TempProtocolData
+        {
+            public List<string> Header { get; set; }
+            public List<Dictionary<string, string>> Moves { get; set; }
+        }
+    }
