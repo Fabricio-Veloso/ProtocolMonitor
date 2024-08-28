@@ -1,13 +1,21 @@
-namespace MyBlazorPwa{
-public class ProtocolTrackingConfig
-  {
-    /*responsable for configuring the protocol by user preferences*/
-    
-    //Expectativa de tempo para movimento padrão
-    DateTime DefautMoveTimeExpectation {get ; set;}
-    		 
-  	//definir expectativa de tempo por setor.
-    readonly List<string> sectors = new List<string>
+using System.Collections.Generic;
+using System.Text.Json;
+using Newtonsoft.Json;
+using System;
+
+
+
+
+namespace MyBlazorPwa
+{
+  public class ProtocolTrackingConfig{
+  /*responsable for configuring the protocol by user preferences*/
+  
+  //Expectativa de tempo para movimento padrão
+  DateTime DefautMoveTimeExpectation {get ; set;}
+        
+  //definir expectativa de tempo por setor.
+  readonly List<string> sectors = new List<string>
   {
     "CSIBE - Comissão de Seleção Interna de Bolsas de Estudo",
     "PRE - Presidência",
@@ -92,14 +100,67 @@ public class ProtocolTrackingConfig
     "CEGEMH - Câmara Especializada de Geologia e Engenharia de Minas Homologação",
     "PLENARIOH - Plenário Homologação"
   };
-  
-    public class MTE_BySector
-  	{
-  	public DateTime BySectorMoveExpectation {get; set;}
-  	public string? sector {get; set;}
-  	}
-  		 
-  	//Definir a mudança de cor do protocol vizualizer de acordo com a distância de tempo em relação ás expectativas  de movimentação. 
-    //"quero que o protocolo mude de verde para amarelo quando faltar 2 dias para o dia que escolhi como expectativa de movimentação do protocolo").
+
+  public class MTE_BySector
+  {
+    public DateTime BySectorMoveExpectation {get; set;}
+    public string? sector {get; set;}
   }
+      
+  //Definir a mudança de cor do protocol vizualizer de acordo com a distância de tempo em relação ás expectativas  de movimentação. 
+  //"quero que o protocolo mude de verde para amarelo quando faltar 2 dias para o dia que escolhi como expectativa de movimentação do protocolo").  
+  }
+
+  public class ProtocolLoader{
+    public static ProtocolData FromJson(string jsonToLoadIn){
+      
+      ProtocolData protocolToFill = new ProtocolData();
+      
+      protocolToFill = JsonConvert.DeserializeObject<ProtocolData>(jsonToLoadIn);
+      Console.WriteLine("Deserialização realizada com sucesso");
+      return protocolToFill;
+    }
+  }
+
+  public class ProtocolData{
+    public Header Header { get; set; } = new Header();
+    public List<Moves> Moves { get; set; }  = new List<Moves>();
+    public ProtocolTrackingConfig trackingConfig { get; set; }  = new ProtocolTrackingConfig();
+
+    // Construtor padrão
+    public ProtocolData() { }
+  }
+
+  public class Header
+  {
+    public string? Interessado { get; set; } = "Vazio";
+    public string? Solicitante { get; set; } = "Vazio";
+    public String? Numero { get; set; } = "Vazio";
+    public string? Inspetoria { get; set; } = "Vazio";
+    public string? Assunto { get; set; } = "Vazio";
+    public string? Origem { get; set; } = "Vazio";
+    public string? Situacao { get; set; } = "Vazio";
+    public string? Destino { get; set; } = "Vazio";
+    public String? Sigiloso { get; set; } = "Vazio";
+    public string? DataEmissao { get; set; } = "Vazio";
+    public string? Descricao { get; set; } = "Vazio";
+  }
+  
+  public class Moves
+  {
+    public string? Passo { get; set; } = "Vazio";
+    public string? UsuarioOrigem { get; set; } = "Vazio";
+    public string? UsuarioDestino { get; set; } = "Vazio";
+    public string? SetorOrigem { get; set; } = "Vazio";
+    public string? SetorDestino { get; set; } = "Vazio";
+    public string? Descricao { get; set; } = "Vazio";
+    public string? Data { get; set; } = "Vazio";
+    public string? Hora { get; set; } = "Vazio";
+    public string Sigiloso { get; set; } = "Vazio";
+  }
+  
 }
+
+
+    
+

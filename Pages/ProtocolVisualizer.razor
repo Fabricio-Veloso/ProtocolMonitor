@@ -1,6 +1,5 @@
 @using MyBlazorPwa
 
-
 @code {
     [Parameter]
     public List<ProtocolData> protocolsList { get; set; } = new List<ProtocolData>();
@@ -19,7 +18,7 @@
     @foreach (var protocol in protocolsList)
     {
         <div class="protocol-card" @onclick="ToggleExpand">
-            <h3>Protocolo: @protocol.Header.Numero/@protocol.Header.Ano</h3>
+            <h3>Protocolo: @protocol.Header.Numero</h3>
             @if (isExpanded)
             {
                 <div>
@@ -30,8 +29,8 @@
                     <p><strong>Origem:</strong> @protocol.Header.Origem</p>
                     <p><strong>Situação:</strong> @protocol.Header.Situacao</p>
                     <p><strong>Destino:</strong> @protocol.Header.Destino</p>
-                    <p><strong>Sigiloso:</strong> @(protocol.Header.Sigiloso == true ? "Sim" : "Não")</p>
-                    <p><strong>Data de Emissão:</strong> @protocol.Header.DataEmissao?.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Sigiloso:</strong> @protocol.Header.Sigiloso</p>
+                    <p><strong>Data de Emissão:</strong> @protocol.Header.DataEmissao?</p>
                     <p><strong>Descrição:</strong> @protocol.Header.Descricao</p>
 
                     <h4>Movimentações:</h4>
@@ -46,9 +45,9 @@
                                 <p><strong>Setor de Origem:</strong> @move.SetorOrigem</p>
                                 <p><strong>Setor de Destino:</strong> @move.SetorDestino</p>
                                 <p><strong>Descrição:</strong> @move.Descricao</p>
-                                <p><strong>Data:</strong> @move.Data?.ToString("dd/MM/yyyy")</p>
-                                <p><strong>Hora:</strong> @move.Hora?.ToString(@"hh\:mm\:ss")</p>
-                                <p><strong>Sigiloso:</strong> @(move.Sigiloso == true ? "Sim" : "Não")</p>
+                                <p><strong>Data:</strong> @move.Data?</p>
+                                <p><strong>Hora:</strong> @move.Hora?</p>
+                                <p><strong>Sigiloso:</strong> @move.Sigiloso?</p>
                             </div>
                         }
                     }

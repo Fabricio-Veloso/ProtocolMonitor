@@ -42,12 +42,13 @@ else if (!string.IsNullOrEmpty(receivedMessage))
   private ProtocolData protocolInstance = new ProtocolData();
   private List<ProtocolData> protocols = new List<ProtocolData>();
   
-  private async Task<List<ProtocolData>> LoadProtocols()
+  /*
+  private async  await Task<List<ProtocolData>> LoadProtocols()
   {
       // Lógica para carregar protocolos (por exemplo, de um arquivo JSON ou de um banco de dados)
       return new List<ProtocolData>(); // Retornar uma lista de ProtocolData preenchida
   }
-
+*/
   private async Task ConnectWebSocket()
   {
       await WebSocketService.ConnectAsync();
@@ -55,48 +56,24 @@ else if (!string.IsNullOrEmpty(receivedMessage))
 
  private async Task RequestProtocolData()
 {
-    ProtocolRequestStatus = true;
-    isLoading = true;
-    receivedMessage = null;
-    StateHasChanged();
+  ProtocolRequestStatus = true;
+  isLoading = true;
+  receivedMessage = null;
+  StateHasChanged();
 
-    await WebSocketService.SendAsync("ProtocolScrape " + userInput);
-    receivedMessage = await WebSocketService.ReceiveAsync();
-
-    if (!string.IsNullOrEmpty(receivedMessage))
-    {
-        try
-        {
-            // Cria uma nova instância de ProtocolData
-            var protocolData = new ProtocolData();
-
-            // Carrega os dados da mensagem recebida
-            protocolData.DeserializeJson(receivedMessage);
-
-            Console.WriteLine(protocolData);
-
-            // Verifica se a instância contém dados e adiciona à lista de protocolos
-            if (protocolData.Header != null)
-            {
-                protocols.Add(protocolData);
-            }
-            else
-            {
-                ProtocolRequestStatus = false;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao carregar dados: {ex.Message}");
-            ProtocolRequestStatus = false;
-        }
-    }
+  await WebSocketService.SendAsync("ProtocolScrape " + userInput);
+  receivedMessage = await WebSocketService.ReceiveAsync();
     
-    isLoading = false;
-    StateHasChanged();
+  if (!string.IsNullOrEmpty(receivedMessage))
+  {
+    Console.WriteLine("Mensagem Recebida do Back-end Node");
+    protocols.Add(ProtocolLoader.FromJson(receivedMessage));
+    
+  
+  }
+  isLoading = false;
+  StateHasChanged();
 }
-
-
 
   private async Task ReceiveMessage()
   {
@@ -116,10 +93,11 @@ else if (!string.IsNullOrEmpty(receivedMessage))
       }
   }
   
-  protected override async Task OnInitializedAsync()
+  /*protected override async  Task OnInitializedAsync()
   {
     //protocols = await LoadProtocols(); // Carrega protocolos de algum lugar, como um serviço ou arquivo
   }
+  */
 
 }
 
