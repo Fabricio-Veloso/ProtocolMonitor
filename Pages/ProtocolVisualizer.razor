@@ -4,68 +4,79 @@
     [Parameter]
     public List<ProtocolData> protocolsList { get; set; } = new List<ProtocolData>();
 
-    private bool isExpanded = false;
+    private ProtocolData selectedProtocol;
+    private bool isModalOpen = false;
 
-    private void ToggleExpand()
+    private void OpenModal(ProtocolData protocol)
     {
-        isExpanded = !isExpanded;
+        selectedProtocol = protocol;
+        isModalOpen = true;
+    }
+
+    private void CloseModal()
+    {
+        isModalOpen = false;
     }
 }
 
 <div class="protocol-visualizer">
-  @if (protocolsList != null && protocolsList.Any())
-{
-    @foreach (var protocol in protocolsList)
+    @if (protocolsList != null && protocolsList.Any())
     {
-        <div class="protocol-card" @onclick="ToggleExpand">
-            <h3>Protocolo: @protocol.Header.Numero</h3>
-            @if (isExpanded)
-            {
-                <div>
-                    <p><strong>Interessado:</strong> @protocol.Header.Interessado</p>
-                    <p><strong>Solicitante:</strong> @protocol.Header.Solicitante</p>
-                    <p><strong>Inspetoria:</strong> @protocol.Header.Inspetoria</p>
-                    <p><strong>Assunto:</strong> @protocol.Header.Assunto</p>
-                    <p><strong>Origem:</strong> @protocol.Header.Origem</p>
-                    <p><strong>Situação:</strong> @protocol.Header.Situacao</p>
-                    <p><strong>Destino:</strong> @protocol.Header.Destino</p>
-                    <p><strong>Sigiloso:</strong> @protocol.Header.Sigiloso</p>
-                    <p><strong>Data de Emissão:</strong> @protocol.Header.DataEmissao?</p>
-                    <p><strong>Descrição:</strong> @protocol.Header.Descricao</p>
+        @foreach (var protocol in protocolsList)
+        {
+            <div class="protocol-card" @onclick="() => OpenModal(protocol)">
+                <h3>Protocolo: @protocol.Header.Numero</h3>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Nenhum protocolo encontrado.</p>
+    }
+</div>
 
-                    <h4>Movimentações:</h4>
-                    @if (protocol.Moves != null && protocol.Moves.Any())
-                    {
-                        @foreach (var move in protocol.Moves)
-                        {
-                            <div class="move-card">
-                                <p><strong>Passo:</strong> @move.Passo</p>
-                                <p><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</p>
-                                <p><strong>Usuário de Destino:</strong> @move.UsuarioDestino</p>
-                                <p><strong>Setor de Origem:</strong> @move.SetorOrigem</p>
-                                <p><strong>Setor de Destino:</strong> @move.SetorDestino</p>
-                                <p><strong>Descrição:</strong> @move.Descricao</p>
-                                <p><strong>Data:</strong> @move.Data?</p>
-                                <p><strong>Hora:</strong> @move.Hora?</p>
-                                <p><strong>Sigiloso:</strong> @move.Sigiloso?</p>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <p>Nenhuma movimentação encontrada.</p>
-                    }
-                </div>
+@if (isModalOpen)
+{
+    <div class="modal">
+        <div class="modal-content">
+            <span class="close" @onclick="CloseModal">&times;</span>
+            <h3>Protocolo: @selectedProtocol.Header.Numero</h3>
+            <p><strong>Interessado:</strong> @selectedProtocol.Header.Interessado</p>
+            <p><strong>Solicitante:</strong> @selectedProtocol.Header.Solicitante</p>
+            <p><strong>Inspetoria:</strong> @selectedProtocol.Header.Inspetoria</p>
+            <p><strong>Assunto:</strong> @selectedProtocol.Header.Assunto</p>
+            <p><strong>Origem:</strong> @selectedProtocol.Header.Origem</p>
+            <p><strong>Situação:</strong> @selectedProtocol.Header.Situacao</p>
+            <p><strong>Destino:</strong> @selectedProtocol.Header.Destino</p>
+            <p><strong>Sigiloso:</strong> @selectedProtocol.Header.Sigiloso</p>
+            <p><strong>Data de Emissão:</strong> @selectedProtocol.Header.DataEmissao?</p>
+            <p><strong>Descrição:</strong> @selectedProtocol.Header.Descricao</p>
+
+            <h4>Movimentações:</h4>
+            @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
+            {
+                @foreach (var move in selectedProtocol.Moves)
+                {
+                    <div class="move-card">
+                        <p><strong>Passo:</strong> @move.Passo</p>
+                        <p><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</p>
+                        <p><strong>Usuário de Destino:</strong> @move.UsuarioDestino</p>
+                        <p><strong>Setor de Origem:</strong> @move.SetorOrigem</p>
+                        <p><strong>Setor de Destino:</strong> @move.SetorDestino</p>
+                        <p><strong>Descrição:</strong> @move.Descricao</p>
+                        <p><strong>Data:</strong> @move.Data?</p>
+                        <p><strong>Hora:</strong> @move.Hora?</p>
+                        <p><strong>Sigiloso:</strong> @move.Sigiloso?</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Nenhuma movimentação encontrada.</p>
             }
         </div>
-    }
+    </div>
 }
-else
-{
-    <p>Nenhum protocolo encontrado.</p>
-}
-
-</div>
 
 <style>
     .protocol-card {
@@ -73,5 +84,32 @@ else
         margin: 10px;
         padding: 10px;
         cursor: pointer;
+    }
+
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        max-width: 500px;
+        max-height: 80%;
+        overflow-y: auto;
+    }
+
+    .close {
+        cursor: pointer;
+        float: right;
+        font-size: 20px;
     }
 </style>

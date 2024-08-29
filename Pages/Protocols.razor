@@ -67,7 +67,8 @@ else if (!string.IsNullOrEmpty(receivedMessage))
   if (!string.IsNullOrEmpty(receivedMessage))
   {
     Console.WriteLine("Mensagem Recebida do Back-end Node");
-    protocols.Add(ProtocolLoader.FromJson(receivedMessage));
+    ProtocolLoader.FromJson(receivedMessage,ref protocolInstance);
+    protocols.Add(protocolInstance);
     
   
   }

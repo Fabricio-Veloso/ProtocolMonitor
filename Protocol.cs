@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Text.Json;
-using Newtonsoft.Json;
 using System;
-
+using System.Text.Json;
 
 
 
@@ -111,14 +109,74 @@ namespace MyBlazorPwa
   //"quero que o protocolo mude de verde para amarelo quando faltar 2 dias para o dia que escolhi como expectativa de movimentação do protocolo").  
   }
 
-  public class ProtocolLoader{
-    public static ProtocolData FromJson(string jsonToLoadIn){
-      
-      ProtocolData protocolToFill = new ProtocolData();
-      
-      protocolToFill = JsonConvert.DeserializeObject<ProtocolData>(jsonToLoadIn);
-      Console.WriteLine("Deserialização realizada com sucesso");
-      return protocolToFill;
+  public static class ProtocolLoader{
+    public static void FromJson(string json,ref ProtocolData protocolData){
+      var jsonDoc = JsonDocument.Parse(json);
+        var root = jsonDoc.RootElement;
+
+        if (root.TryGetProperty("Header", out var headerArray))
+        {
+            foreach (var item in headerArray.EnumerateArray())
+            {
+                string[] parts = item.GetString().Split("::");
+                string key = parts[0].Trim();
+                string value = parts.Length > 1 ? parts[1].Trim() : "Vazio";
+
+                switch (key)
+                {
+                    case "Registro CREA":
+                    case "Interessado(s)":
+                        protocolData.Header.Interessado = value;
+                        break;
+                    case "Numero/Ano":
+                        protocolData.Header.Numero = value;
+                        break;
+                    case "Inspetoria":
+                        protocolData.Header.Inspetoria = value;
+                        break;
+                    case "Assunto":
+                        protocolData.Header.Assunto = value;
+                        break;
+                    case "Origem":
+                        protocolData.Header.Origem = value;
+                        break;
+                    case "Situação":
+                        protocolData.Header.Situacao = value;
+                        break;
+                    case "Destino":
+                        protocolData.Header.Destino = value;
+                        break;
+                    case "Sigiloso":
+                        protocolData.Header.Sigiloso = value;
+                        break;
+                    case "Data de emissão":
+                        protocolData.Header.DataEmissao = value;
+                        break;
+                }
+            }
+        }
+
+        if (root.TryGetProperty("Moves", out var movesArray))
+        {
+            foreach (var move in movesArray.EnumerateArray())
+            {
+                var moveValues = move.EnumerateArray();
+                var moves = new Moves
+                {
+                    Passo = moveValues.ElementAtOrDefault(0).GetString() ?? "Vazio",
+                    UsuarioOrigem = moveValues.ElementAtOrDefault(1).GetString() ?? "Vazio",
+                    UsuarioDestino = moveValues.ElementAtOrDefault(2).GetString() ?? "Vazio",
+                    SetorOrigem = moveValues.ElementAtOrDefault(3).GetString() ?? "Vazio",
+                    SetorDestino = moveValues.ElementAtOrDefault(4).GetString() ?? "Vazio",
+                    Descricao = moveValues.ElementAtOrDefault(5).GetString() ?? "Vazio",
+                    Data = moveValues.ElementAtOrDefault(6).GetString() ?? "Vazio",
+                    Hora = moveValues.ElementAtOrDefault(7).GetString() ?? "Vazio",
+                    Sigiloso = moveValues.ElementAtOrDefault(8).GetString() ?? "Vazio"
+                };
+
+                protocolData.Moves.Add(moves);
+            }
+        }
     }
   }
 
@@ -131,8 +189,7 @@ namespace MyBlazorPwa
     public ProtocolData() { }
   }
 
-  public class Header
-  {
+  public class Header{
     public string? Interessado { get; set; } = "Vazio";
     public string? Solicitante { get; set; } = "Vazio";
     public String? Numero { get; set; } = "Vazio";
@@ -146,8 +203,7 @@ namespace MyBlazorPwa
     public string? Descricao { get; set; } = "Vazio";
   }
   
-  public class Moves
-  {
+  public class Moves{
     public string? Passo { get; set; } = "Vazio";
     public string? UsuarioOrigem { get; set; } = "Vazio";
     public string? UsuarioDestino { get; set; } = "Vazio";
