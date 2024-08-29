@@ -3,102 +3,86 @@
 @using System.Text.Json
 @inject WebSocketService WebSocketService
 @using MyBlazorPwa
-
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JSRuntime
 
 <h3>WebSocket Example</h3>
 <button @onclick="ConnectWebSocket">Connect</button>
 
 <form id="textForm" @onsubmit="RequestProtocolData">
   <label for="userInput">Insira seu texto:</label>
-  <input type="text" id="userInput" @bind="userInput" name="userInput">
+  <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="200248809">
   <button type="submit">Enviar</button>
 </form>
 
-
 <PageTitle>Protocolos</PageTitle>
-
 
 <h1>Visualização de Protocolos</h1>
 
 @if (isLoading)
 {
-  <p>Carregando...</p>
+    <p>Carregando...</p>
 }
 else if (ProtocolRequestStatus != true)
 {
-  <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
+    <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
 }
-else if (!string.IsNullOrEmpty(receivedMessage))
+else if (protocols.Any()) // Verifica se há protocolos na lista
 {
-  <ProtocolVisualizer protocolsList="@protocols" />
+    <ProtocolVisualizer protocolsList="@protocols" />
 }
-
-@code{
-  private bool ProtocolRequestStatus = true;
-  private string? userInput;
-  private bool isLoading = false;
-  private string? receivedMessage;
-  private string? receivedData;
-  private ProtocolData protocolInstance = new ProtocolData();
-  private List<ProtocolData> protocols = new List<ProtocolData>();
-  
-  /*
-  private async  await Task<List<ProtocolData>> LoadProtocols()
-  {
-      // Lógica para carregar protocolos (por exemplo, de um arquivo JSON ou de um banco de dados)
-      return new List<ProtocolData>(); // Retornar uma lista de ProtocolData preenchida
-  }
-*/
-  private async Task ConnectWebSocket()
-  {
-      await WebSocketService.ConnectAsync();
-  }
-
- private async Task RequestProtocolData()
+else
 {
-  ProtocolRequestStatus = true;
-  isLoading = true;
-  receivedMessage = null;
-  StateHasChanged();
-
-  await WebSocketService.SendAsync("ProtocolScrape " + userInput);
-  receivedMessage = await WebSocketService.ReceiveAsync();
-    
-  if (!string.IsNullOrEmpty(receivedMessage))
-  {
-    Console.WriteLine("Mensagem Recebida do Back-end Node");
-    ProtocolLoader.FromJson(receivedMessage,ref protocolInstance);
-    protocols.Add(protocolInstance);
-    
-  
-  }
-  isLoading = false;
-  StateHasChanged();
+    <p>Não há protocolos salvos. Por favor pesquise Novos protocolos</p> // Mensagem caso não haja protocolos
 }
 
-  private async Task ReceiveMessage()
-  {
-      receivedMessage = await WebSocketService.ReceiveAsync();
+@code {
+    private bool ProtocolRequestStatus = true;
+    private string? userInput;
+    private bool isLoading = false;
+    private string? receivedMessage;
+    private string? receivedData;
+    private ProtocolData protocolInstance = new ProtocolData();
+    private List<ProtocolData> protocols = new List<ProtocolData>();
 
-      // Parse JSON if needed
-      if (!string.IsNullOrEmpty(receivedMessage))
-      {
-          try
-          {
-              receivedData = receivedMessage;
-          }
-          catch
-          {
-              receivedData = "Erro ao processar os dados recebidos.";
-          }
-      }
-  }
-  
-  /*protected override async  Task OnInitializedAsync()
-  {
-    //protocols = await LoadProtocols(); // Carrega protocolos de algum lugar, como um serviço ou arquivo
-  }
-  */
+    private async Task ConnectWebSocket()
+    {
+        await WebSocketService.ConnectAsync();
+    }
 
+    private async Task RequestProtocolData()
+    {
+        ProtocolRequestStatus = true;
+        isLoading = true;
+        receivedMessage = null;
+        StateHasChanged();
+
+        await WebSocketService.SendAsync("ProtocolScrape " + userInput);
+        receivedMessage = await WebSocketService.ReceiveAsync();
+        
+        if (!string.IsNullOrEmpty(receivedMessage))
+        {
+            Console.WriteLine("Mensagem Recebida do Back-end Node");
+            ProtocolLoader.FromJson(receivedMessage, ref protocolInstance);
+            
+            // Verifique se o protocolo já existe antes de adicionar
+            if (!protocols.Any(p => p.Header.Numero == protocolInstance.Header.Numero)) // Supondo que `Id` é uma propriedade única
+            {
+                protocols.Add(protocolInstance);
+                await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
+            }
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
+        
+        if (savedProtocols != null)
+        {
+            protocols = savedProtocols; // Carregue protocolos salvos
+        }
+    }
 }
-
