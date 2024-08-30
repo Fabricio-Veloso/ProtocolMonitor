@@ -44,8 +44,65 @@
     {
         @foreach (var protocol in protocolsList)
         {
+          
             <div class="protocol-card" @onclick="() => ShowModal(protocol)">
-                <h3>Protocolo: @protocol.Header.Numero</h3>
+                @{
+                    // Obter os valores do protocolo
+                    var numero = protocol.Header.Numero;
+                    var assunto = protocol.Header.Assunto;
+                    var dataEmissao = protocol.Header.DataEmissao;
+                    var descricao = protocol.Header.Descricao;
+
+                    // Obter a última movimentação
+                    var lastMove = protocol.Moves.LastOrDefault();
+
+                    // Verificar se há uma última movimentação
+                    if (lastMove != null)
+                    {
+                        var dataMovimento = lastMove.Data;
+                        var horaMovimento = lastMove.Hora;
+                        var setorDestino = lastMove.SetorDestino;
+                    }
+
+                    // Verificar se os campos estão "Vazio"
+                    bool isNumeroVazio = string.IsNullOrWhiteSpace(numero) || numero == "Vazio";
+                    bool isAssuntoVazio = string.IsNullOrWhiteSpace(assunto) || assunto == "Vazio";
+                    bool isDataEmissaoVazia = string.IsNullOrWhiteSpace(dataEmissao) || dataEmissao == "Vazio";
+                    bool isDescricaoVazia = string.IsNullOrWhiteSpace(descricao) || descricao == "Vazio";
+
+                    // Lógica para exibir o conteúdo correto
+                    if ((!isAssuntoVazio && !isDescricaoVazia)&&(lastMove != null))
+                    {
+                        <h3><strong>@descricao</strong> @assunto</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>                       
+                    }
+                    else if ((!isAssuntoVazio && !isNumeroVazio)&&(lastMove != null))
+                    {
+                        <h3><strong>@assunto</strong> @numero</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    else if (!isNumeroVazio && (lastMove != null))
+                    {
+                        <h3> @numero</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    else if (!isDataEmissaoVazia && (lastMove != null))
+                    {
+                        <h3> @dataEmissao</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    else 
+                    {
+                        <h3>Protocolo sem identificadores</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    
+                }
             </div>
         }
     }
@@ -56,6 +113,7 @@
 
     @if (isModalVisible && selectedProtocol != null)
     {
+      <div class="fade-in">
         <div class="modal">
             <div class="modal-content">
                 <span class="close-button" @onclick="HideModal">&times;</span>
@@ -95,8 +153,10 @@
                 }
             </div>
         </div>
+      </div>
     }
 </div>
+
 
 <style>
     .protocol-card {

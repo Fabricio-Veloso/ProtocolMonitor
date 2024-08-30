@@ -6,40 +6,60 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JSRuntime
 
-<h3>WebSocket Example</h3>
-<button @onclick="ConnectWebSocket">Connect</button>
-
-<form id="textForm" @onsubmit="RequestProtocolData">
-  <label for="userInput">Insira seu texto:</label>
-  <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="200248809">
-  <button type="submit">Enviar</button>
-</form>
-
-<PageTitle>Protocolos</PageTitle>
-
-<h1>Visualização de Protocolos</h1>
+<h1>Protocol Monitor</h1>
 
 @if (isLoading)
 {
-    <p>Carregando...</p>
+  <div class="fade-in">
+    <div class="loader"></div> <span>Adicionando novo protocolo</span>
+  </div>
+}
+@if(isLoading = false ){
+  <div class="fade-out">
+    <div class="loader"></div>
+  </div>
+}
+@if (isConnecting)
+{
+  <div class="fade-in">
+    <div class="loader"></div> <span>Estabelecendo conexão com o back-end local</span>
+  </div>
+}
+else if (isConnected && !hasConnectionMessageDisappeared)
+{
+  <div class="fade-out"> <span>Conexão estabelecida!</span>
+  </div>
+}
+
+<form id="textForm" @onsubmit="RequestProtocolData">
+    <label for="userInput">Insira seu texto:</label>
+    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="200248809">
+    <button type="submit">Enviar</button>
+</form>
+
+
+@if (protocols.Any()) // Verifica se há protocolos na lista
+{
+    <div class="fade-in">
+      <ProtocolVisualizer protocolsList="@protocols"/>
+    </div>
 }
 else if (ProtocolRequestStatus != true)
 {
     <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
 }
-else if (protocols.Any()) // Verifica se há protocolos na lista
+@if (!protocols.Any())
 {
-    <ProtocolVisualizer protocolsList="@protocols" />
-}
-else
-{
-    <p>Não há protocolos salvos. Por favor pesquise Novos protocolos</p> // Mensagem caso não haja protocolos
+  <p>Não há protocolos salvos. Por favor pesquise Novos protocolos</p>
 }
 
 @code {
     private bool ProtocolRequestStatus = true;
     private string? userInput;
-    private bool isLoading = false;
+    private bool isLoading = false; // Começar com loading
+    private bool isConnecting = true;
+    private bool isConnected = false; // Novo estado para conexão
+    private bool hasConnectionMessageDisappeared = false; // Novo estado para controle de mensagem
     private string? receivedMessage;
     private string? receivedData;
     private ProtocolData protocolInstance = new ProtocolData();
@@ -66,7 +86,7 @@ else
             ProtocolLoader.FromJson(receivedMessage, ref protocolInstance);
             
             // Verifique se o protocolo já existe antes de adicionar
-            if (!protocols.Any(p => p.Header.Numero == protocolInstance.Header.Numero)) // Supondo que `Id` é uma propriedade única
+            if (!protocols.Any(p => p.Header.Numero == protocolInstance.Header.Numero))
             {
                 protocols.Add(protocolInstance);
                 await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
@@ -84,5 +104,39 @@ else
         {
             protocols = savedProtocols; // Carregue protocolos salvos
         }
+
+        // Tentar conectar ao WebSocket automaticamente
+        await TryConnectWebSocket();
+    }
+
+    private async Task TryConnectWebSocket()
+    {
+        while (!isConnected)
+        {
+            isConnecting = true; // Mostrar loader
+            StateHasChanged();
+            try
+            {
+                await ConnectWebSocket();
+                isConnected = true; // Definir como conectado
+                isConnecting= false; // Remover loader
+                await ShowConnectionMessage(); // Mostrar a mensagem de conexão
+            }
+            catch (Exception)
+            {
+                // Se falhar, espere um pouco antes de tentar novamente
+                await Task.Delay(2000);
+            }
+        }
+    }
+
+    private async Task ShowConnectionMessage()
+    {
+        await Task.Delay(500); // Esperar um pouco antes de mostrar a mensagem
+        hasConnectionMessageDisappeared = false;
+        StateHasChanged();
+        await Task.Delay(2000); // Tempo da mensagem de conexão
+        hasConnectionMessageDisappeared = true;
+        StateHasChanged();
     }
 }

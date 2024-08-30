@@ -13,7 +13,7 @@ namespace MyBlazorPwa
   DateTime DefautMoveTimeExpectation {get ; set;}
         
   //definir expectativa de tempo por setor.
-  readonly List<string> sectors = new List<string>
+  readonly static List<string> sectors = new List<string>
   {
     "CSIBE - Comissão de Seleção Interna de Bolsas de Estudo",
     "PRE - Presidência",
@@ -99,7 +99,7 @@ namespace MyBlazorPwa
     "PLENARIOH - Plenário Homologação"
   };
 
-  public class MTE_BySector
+  public class MTE_BySector //Move time expectation
   {
     public DateTime BySectorMoveExpectation {get; set;}
     public string? sector {get; set;}
@@ -114,17 +114,25 @@ namespace MyBlazorPwa
       var jsonDoc = JsonDocument.Parse(json);
         var root = jsonDoc.RootElement;
 
-        if (root.TryGetProperty("Header", out var headerArray))
+       if (root.TryGetProperty("Header", out var headerArray))
         {
             foreach (var item in headerArray.EnumerateArray())
             {
-                string[] parts = item.GetString().Split("::");
+                string headerEntry = item.GetString();
+                
+                // Escolhe o delimitador adequado, primeiro verifica "::", depois ":"
+                string[] parts = headerEntry.Contains("::") 
+                    ? headerEntry.Split(new[] { "::" }, StringSplitOptions.None)
+                    : headerEntry.Split(new[] { ":" }, StringSplitOptions.None);
+
                 string key = parts[0].Trim();
                 string value = parts.Length > 1 ? parts[1].Trim() : "Vazio";
 
                 switch (key)
                 {
-                    case "Registro CREA":
+                    case "Solicitante":
+                        protocolData.Header.Solicitante = value;
+                        break;
                     case "Interessado(s)":
                         protocolData.Header.Interessado = value;
                         break;
