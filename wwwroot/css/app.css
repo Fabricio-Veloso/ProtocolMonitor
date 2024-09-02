@@ -118,9 +118,9 @@ code {
 
 .fade-in {
   display: flex; 
-  animation: fadein 2s linear;
+  animation: fadein 0.2s linear;
   opacity: 1;
-  transition: 2s linear;
+  transition: 0.2s linear;
 }
 
 @keyframes fadein {
