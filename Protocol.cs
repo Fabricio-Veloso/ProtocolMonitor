@@ -110,7 +110,7 @@ namespace MyBlazorPwa
   }
 
   public static class ProtocolLoader{
-    public static void FromJson(string json,ref ProtocolData protocolData){
+    public static void PD_FromJson(string json,ref ProtocolData protocolData){
       var jsonDoc = JsonDocument.Parse(json);
         var root = jsonDoc.RootElement;
 
@@ -186,6 +186,45 @@ namespace MyBlazorPwa
             }
         }
     }
+    public static void MiniPDFromJson(string json,ref MiniProtocolData miniProtocolData){
+        var jsonDoc = JsonDocument.Parse(json);
+        var root = jsonDoc.RootElement;
+
+        if (root.TryGetProperty("MiniProtocols", out var miniProtocolsArray))
+        {
+            foreach (var miniProtocol in miniProtocolsArray.EnumerateArray())
+            {
+                var miniProtocolsValues = miniProtocolsArray.EnumerateArray();
+                var miniProtocolv = new MiniProtocolData
+                {
+                    Numero = miniProtocolsValues.ElementAtOrDefault(0).GetString() ?? "Vazio",
+                    DataCadastro = miniProtocolsValues.ElementAtOrDefault(1).GetString() ?? "Vazio",
+                    Assunto = miniProtocolsValues.ElementAtOrDefault(2).GetString() ?? "Vazio",
+                    Descricao = miniProtocolsValues.ElementAtOrDefault(3).GetString() ?? "Vazio",
+                    //Interessado = miniProtocolsValues.ElementAtOrDefault(4).GetString() ?? "Vazio",
+                    LocalizacaoAtual = miniProtocolsValues.ElementAtOrDefault(5).GetString() ?? "Vazio",
+                    DataUltimoMoviemnto = miniProtocolsValues.ElementAtOrDefault(10).GetString() ?? "Vazio",
+                    HoraUltimoMovimento = miniProtocolsValues.ElementAtOrDefault(11).GetString() ?? "Vazio",
+                };
+                miniProtocolData.MiniProtocolDataList.Add(miniProtocolv);   
+
+            };
+        }
+    }
+  }
+    
+  
+  public class MiniProtocolData{
+    public string? DataUltimoMoviemnto { get; set; } = "Vazio";
+    public string? HoraUltimoMovimento { get; set; } = "Vazio";
+    public string? LocalizacaoAtual    { get; set; } = "Vazio";
+    public string? Interessado         { get; set; } = "Vazio";
+    public String? Numero              { get; set; } = "Vazio";
+    public string? Assunto             { get; set; } = "Vazio";
+    public string? Descricao           { get; set; } = "Vazio";
+    public string? DataCadastro        { get; set; } = "Vazio";
+
+    public List<MiniProtocolData> MiniProtocolDataList { get; set; } = new List<MiniProtocolData>();
   }
 
   public class ProtocolData{
@@ -198,17 +237,21 @@ namespace MyBlazorPwa
   }
 
   public class Header{
-    public string? Interessado { get; set; } = "Vazio";
-    public string? Solicitante { get; set; } = "Vazio";
-    public String? Numero { get; set; } = "Vazio";
-    public string? Inspetoria { get; set; } = "Vazio";
-    public string? Assunto { get; set; } = "Vazio";
-    public string? Origem { get; set; } = "Vazio";
-    public string? Situacao { get; set; } = "Vazio";
-    public string? Destino { get; set; } = "Vazio";
-    public String? Sigiloso { get; set; } = "Vazio";
-    public string? DataEmissao { get; set; } = "Vazio";
-    public string? Descricao { get; set; } = "Vazio";
+    public string? DataUltimoMoviemnto { get; set; } = "Vazio";
+    public string? HoraUltimoMovimento { get; set; } = "Vazio";
+    public string? LocalizacaoAtual    { get; set; } = "Vazio";
+    public string? Interessado         { get; set; } = "Vazio";
+    public string? Solicitante         { get; set; } = "Vazio";
+    public String? Numero              { get; set; } = "Vazio";
+    public string? Inspetoria          { get; set; } = "Vazio";
+    public string? Assunto             { get; set; } = "Vazio";
+    public string? Origem              { get; set; } = "Vazio";
+    public string? Situacao            { get; set; } = "Vazio";
+    public string? Destino             { get; set; } = "Vazio";
+    public String? Sigiloso            { get; set; } = "Vazio";
+    public string? DataEmissao         { get; set; } = "Vazio";
+    public string? Descricao           { get; set; } = "Vazio";
+
   }
   
   public class Moves{
