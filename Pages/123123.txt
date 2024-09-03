@@ -14,7 +14,7 @@
     <div class="loader"></div> <span>Adicionando novo protocolo</span>
   </div>
 }
-@if(isLoading = false){
+@if(isLoading = false ){
   <div class="fade-out">
     <div class="loader"></div>
   </div>
@@ -32,17 +32,17 @@ else if (isConnected && !hasConnectionMessageDisappeared)
 }
 
 <form id="textForm" @onsubmit="RequestProtocolData">
-    <label for="userInput">Insira o número do protocolo:</label>
-    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="200248809">
-    <button type="submit">Enviar</button>
+    <label for="userInput">Insira o número do protocolo</label>
+    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="9 Dígitos">
+    <button type="submit">Pesquisar</button>
 </form>
 
 
 @if (protocols.Any()) // Verifica se há protocolos na lista
 {
-    <div class="fade-in">
-      <ProtocolVisualizer protocolsList="@protocols"/>
-    </div>
+  <div class="fade-in">
+    <ProtocolVisualizer protocolsList="@protocols"/>
+  </div>
 }
 
 @if(miniprotocols.Any())
@@ -71,8 +71,8 @@ else if (ProtocolRequestStatus != true)
   private string? receivedMessage;
   private string? receivedData;
   private ProtocolData protocolInstance = new ProtocolData();
+  private MiniProtocolData miniProtocolInstance = new MiniProtocolData();
   private List<ProtocolData> protocols = new List<ProtocolData>();
-  //private MiniProtocolData miniProtocolInstance = new MiniProtocolData();
   private List<MiniProtocolData> miniprotocols = new List<MiniProtocolData>();
 
   private async Task ConnectWebSocket()
@@ -81,36 +81,61 @@ else if (ProtocolRequestStatus != true)
   }
 
   private async Task RequestProtocolData()
-  {
+{
     ProtocolRequestStatus = true;
     isLoading = true;
     receivedMessage = null;
     StateHasChanged();
 
-    await WebSocketService.SendAsync("ProtocolScrape " + userInput);
-    receivedMessage = await WebSocketService.ReceiveAsync();
-    
-    if (userInput == "Licitação")
-      {
-      ProtocolLoader.MiniPD_FromJson(receivedMessage, ref miniprotocols);
-      }
-      else{
-    if (!string.IsNullOrEmpty(receivedMessage))
+    try
     {
-      Console.WriteLine("Mensagem Recebida do Back-end Node");
-      ProtocolLoader.PD_FromJson(receivedMessage, ref protocolInstance);
-      
-      // Verifique se o protocolo já existe antes de adicionar
-      if (!protocols.Any(p => p.Header.Numero == protocolInstance.Header.Numero))
-      {
-        protocols.Add(protocolInstance);
-        await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
-      }
+        Console.WriteLine($"Enviando mensagem para WebSocket: ProtocolScrape {userInput}");
+        await WebSocketService.SendAsync("ProtocolScrape " + userInput);
+        receivedMessage = await WebSocketService.ReceiveAsync();
+        
+        Console.WriteLine($"Mensagem recebida do back-end: {receivedMessage}");
+
+        if (!string.IsNullOrEmpty(receivedMessage))
+        {
+            Console.WriteLine("Mensagem Recebida do Back-end Node");
+
+            if (userInput == "Licitação")
+            {
+                ProtocolLoader.MiniPD_FromJson(receivedMessage, ref miniprotocols);
+
+                foreach (var miniProtocol in miniprotocols.ToList()) // Usar ToList para evitar modificar a coleção enquanto itera
+                {
+                    if (!miniprotocols.Any(p => p.Numero == miniProtocol.Numero))
+                    {
+                        miniprotocols.Add(miniProtocol);
+                    }
+                }
+            }
+            else
+            {
+                // Verifique se o protocolo já existe antes de adicionar
+                if (!protocols.Any(p => p.Header.Numero == protocolInstance.Header.Numero))
+                {
+                    protocols.Add(protocolInstance);
+                    await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("Mensagem recebida está vazia ou nula.");
+        }
     }
-    isLoading = false;
-    StateHasChanged();
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao solicitar dados do protocolo: {ex.Message}");
     }
-  }
+    finally
+    {
+        isLoading = false;
+        StateHasChanged();
+    }
+}
 
     protected override async Task OnInitializedAsync()
     {
@@ -118,7 +143,7 @@ else if (ProtocolRequestStatus != true)
       
       if (savedProtocols != null)
       {
-          protocols = savedProtocols; // Carregue protocolos salvos
+        protocols = savedProtocols; // Carregue protocolos salvos
       }
 
       // Tentar conectar ao WebSocket automaticamente

@@ -7,22 +7,7 @@
     private bool isModalVisible = false;
     private ProtocolData? selectedProtocol = null;
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender && isModalVisible)
-        {
-            // Registra o evento de teclado
-            _ = JSRuntime.InvokeVoidAsync("addKeyPressListener", DotNetObjectReference.Create(this));
-        }
-    }
-
-    [JSInvokable]
-    public void CloseModal()
-    {
-        HideModal();
-        StateHasChanged();
-    }
-
+    
     private void ShowModal(ProtocolData protocol)
     {
         selectedProtocol = protocol;
@@ -59,9 +44,9 @@
                     // Verificar se há uma última movimentação
                     if (lastMove != null)
                     {
-                        var dataMovimento = lastMove.Data;
-                        var horaMovimento = lastMove.Hora;
-                        var setorDestino = lastMove.SetorDestino;
+                      var dataMovimento = lastMove.Data;
+                      var horaMovimento = lastMove.Hora;
+                      var setorDestino = lastMove.SetorDestino;
                     }
 
                     // Verificar se os campos estão "Vazio"

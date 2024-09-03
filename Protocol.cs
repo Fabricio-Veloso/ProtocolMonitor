@@ -186,7 +186,8 @@ namespace MyBlazorPwa
             }
         }
     }
-    public static void MiniPDFromJson(string json,ref MiniProtocolData miniProtocolData){
+    
+    public static void MiniPD_FromJson(string json,ref List<MiniProtocolData> miniProtocolDataList){
         var jsonDoc = JsonDocument.Parse(json);
         var root = jsonDoc.RootElement;
 
@@ -203,19 +204,18 @@ namespace MyBlazorPwa
                     Descricao = miniProtocolsValues.ElementAtOrDefault(3).GetString() ?? "Vazio",
                     //Interessado = miniProtocolsValues.ElementAtOrDefault(4).GetString() ?? "Vazio",
                     LocalizacaoAtual = miniProtocolsValues.ElementAtOrDefault(5).GetString() ?? "Vazio",
-                    DataUltimoMoviemnto = miniProtocolsValues.ElementAtOrDefault(10).GetString() ?? "Vazio",
+                    DataUltimoMovimento = miniProtocolsValues.ElementAtOrDefault(10).GetString() ?? "Vazio",
                     HoraUltimoMovimento = miniProtocolsValues.ElementAtOrDefault(11).GetString() ?? "Vazio",
                 };
-                miniProtocolData.MiniProtocolDataList.Add(miniProtocolv);   
+                miniProtocolDataList.Add(miniProtocolv);   
 
             };
         }
     }
   }
-    
   
   public class MiniProtocolData{
-    public string? DataUltimoMoviemnto { get; set; } = "Vazio";
+    public string? DataUltimoMovimento { get; set; } = "Vazio";
     public string? HoraUltimoMovimento { get; set; } = "Vazio";
     public string? LocalizacaoAtual    { get; set; } = "Vazio";
     public string? Interessado         { get; set; } = "Vazio";
@@ -224,7 +224,7 @@ namespace MyBlazorPwa
     public string? Descricao           { get; set; } = "Vazio";
     public string? DataCadastro        { get; set; } = "Vazio";
 
-    public List<MiniProtocolData> MiniProtocolDataList { get; set; } = new List<MiniProtocolData>();
+    public  MiniProtocolData miniProtocolData { get; set; } = new MiniProtocolData();
   }
 
   public class ProtocolData{
