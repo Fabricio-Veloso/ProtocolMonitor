@@ -101,3 +101,43 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+
+.loader {
+  border: 8px solid #f3f3f3; /* Cor do fundo do círculo */
+  border-top: 8px solid #3498db; /* Cor do círculo */
+  border-radius: 50%;
+  width: 30px; /* Tamanho do círculo */
+  height: 30px; /* Tamanho do círculo */
+  animation: spin 1s linear infinite; /* Animação de rotação */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.fade-in {
+  display: flex; 
+  animation: fadein 0.2s linear;
+  opacity: 1;
+  transition: 0.2s linear;
+}
+
+@keyframes fadein {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.fade-out {
+  display: flex; 
+  animation: fadeOut 2s linear; 
+  opacity: 1;
+  transition: 2s linear;
+  
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+

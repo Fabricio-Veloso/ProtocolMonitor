@@ -3,7 +3,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+namespace MyBlazorPwa{
 public class WebSocketService
 {
     private readonly ClientWebSocket _webSocket = new ClientWebSocket();
@@ -22,15 +22,26 @@ public class WebSocketService
     }
 
     public async Task<string> ReceiveAsync()
+{
+    using var memoryStream = new MemoryStream();
+    var buffer = new byte[1024];
+
+    WebSocketReceiveResult result;
+
+    do
     {
-        var buffer = new byte[1024];
-        var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-        return Encoding.UTF8.GetString(buffer, 0, result.Count);
-    }
+        result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        memoryStream.Write(buffer, 0, result.Count);
+    } while (!result.EndOfMessage); // Continua recebendo até o final da mensagem
+
+    return Encoding.UTF8.GetString(memoryStream.ToArray());
+}
 
     public async Task CloseAsync()
     {
         await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
         _webSocket.Dispose();
     }
+}
+
 }

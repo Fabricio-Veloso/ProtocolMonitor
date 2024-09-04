@@ -1,0 +1,127 @@
+@using MyBlazorPwa
+
+
+<div class="miniprotocol-visualizer">
+    @if (miniprotocolsList != null && miniprotocolsList.Any())
+    {
+        @foreach (var protocol in miniprotocolsList)
+        {
+            <div class="miniprotocol-card">
+                @{
+                    // Obter os valores do protocolo
+                    var numero = protocol.Numero;
+                    var assunto = protocol.Assunto;
+                    var dataUltimoMovimento = protocol.DataUltimoMovimento;
+                    var horaUltimoMovimento = protocol.HoraUltimoMovimento;
+                    var localizacaoAtual = protocol.LocalizacaoAtual;
+                    var descricao = protocol.Descricao;
+
+                    // Verificar se os campos estão "Vazio"
+                    bool isNumeroVazio = string.IsNullOrWhiteSpace(numero) || numero == "Vazio";
+                    bool isAssuntoVazio = string.IsNullOrWhiteSpace(assunto) || assunto == "Vazio";
+                    bool isDescricaoVazia = string.IsNullOrWhiteSpace(descricao) || descricao == "Vazio";
+                    bool isDataUltimoMovimentoVazia = string.IsNullOrWhiteSpace(dataUltimoMovimento) || dataUltimoMovimento == "Vazio";
+                    bool isHoraUltimoMovimentoVazia = string.IsNullOrWhiteSpace(horaUltimoMovimento) || horaUltimoMovimento == "Vazio";
+                    bool isLocalizacaoAtualVazia = string.IsNullOrWhiteSpace(localizacaoAtual) || localizacaoAtual == "Vazio";
+
+                    // Verificar se todos os campos estão vazios
+                    bool todosVazios = isNumeroVazio && isAssuntoVazio && isDescricaoVazia && isDataUltimoMovimentoVazia && isHoraUltimoMovimentoVazia && isLocalizacaoAtualVazia;
+                }
+
+                // Lógica para exibir o conteúdo correto
+                if (!todosVazios)
+                {
+                    if ((!isAssuntoVazio && !isDescricaoVazia) && (!isLocalizacaoAtualVazia))
+                    {
+                        <h3><strong>@descricao</strong> @assunto</h3>
+                        <h6>Atualmente em: @localizacaoAtual</h6>
+                        <p>Desde: @dataUltimoMovimento @horaUltimoMovimento</p>
+                    }
+                    else if ((!isAssuntoVazio && !isNumeroVazio) && (!isLocalizacaoAtualVazia))
+                    {
+                        <h3><strong>@assunto</strong> @numero</h3>
+                        <h6>Atualmente em: @localizacaoAtual</h6>
+                        <p>Desde: @dataUltimoMovimento @horaUltimoMovimento</p>
+                    }
+                    else if (!isNumeroVazio && (!isLocalizacaoAtualVazia))
+                    {
+                        <h3>@numero</h3>
+                        <h6>Atualmente em: @localizacaoAtual</h6>
+                        <p>Desde: @dataUltimoMovimento @horaUltimoMovimento</p>
+                    }
+                    else
+                    {
+                        <h3>Protocolo sem identificadores</h3>
+                        <h6>Atualmente em: @localizacaoAtual</h6>
+                        <p>Desde: @dataUltimoMovimento @horaUltimoMovimento</p>
+                    }
+                }
+                else
+                {
+                    <h3>MiniProtocolo sem informações disponíveis</h3>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <p>Nenhum protocolo encontrado.</p>
+    }
+</div>
+
+<style>
+    .miniprotocol-card {
+        border: 1px solid #ccc;
+        margin: 10px;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    .modal {
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-height: 70%;
+        overflow-y: auto;
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .move-card {
+        border: 1px solid #ccc;
+        margin-top: 10px;
+        padding: 10px;
+    }
+</style>
+
+@code {
+  [Parameter]
+  public List<MiniProtocolData> miniprotocolsList { get; set; } = new List<MiniProtocolData>();
+}

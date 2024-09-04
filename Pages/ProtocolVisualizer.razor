@@ -1,0 +1,198 @@
+@using MyBlazorPwa
+@inject IJSRuntime JSRuntime
+@code {
+    [Parameter]
+    public List<ProtocolData> protocolsList { get; set; } = new List<ProtocolData>();
+
+    private bool isModalVisible = false;
+    private ProtocolData? selectedProtocol = null;
+
+    
+    private void ShowModal(ProtocolData protocol)
+    {
+        selectedProtocol = protocol;
+        isModalVisible = true;
+        StateHasChanged(); // Atualiza a UI
+    }
+
+    private void HideModal()
+    {
+        isModalVisible = false;
+        selectedProtocol = null;
+        // Remove o listener de teclado
+        _ = JSRuntime.InvokeVoidAsync("removeKeyPressListener");
+    }
+}
+
+<div class="protocol-visualizer">
+    @if (protocolsList != null && protocolsList.Any())
+    {
+        @foreach (var protocol in protocolsList)
+        {
+          
+            <div class="protocol-card" @onclick="() => ShowModal(protocol)">
+                @{
+                    // Obter os valores do protocolo
+                    var numero = protocol.Header.Numero;
+                    var assunto = protocol.Header.Assunto;
+                    var dataEmissao = protocol.Header.DataEmissao;
+                    var descricao = protocol.Header.Descricao;
+                    Moves lastMove = new Moves();
+                    // Obter a última movimentação
+                    if (protocol.Moves != null){
+                    lastMove = protocol.Moves.LastOrDefault();
+                    }
+
+                    // Verificar se há uma última movimentação
+                    if (lastMove != null)
+                    {
+                      string dataMovimento = lastMove.Data;
+                      string horaMovimento = lastMove.Hora;
+                      string setorDestino = lastMove.SetorDestino;
+                    }
+
+                    // Verificar se os campos estão "Vazio"
+                    bool isNumeroVazio = string.IsNullOrWhiteSpace(numero) || numero == "Vazio";
+                    bool isAssuntoVazio = string.IsNullOrWhiteSpace(assunto) || assunto == "Vazio";
+                    bool isDataEmissaoVazia = string.IsNullOrWhiteSpace(dataEmissao) || dataEmissao == "Vazio";
+                    bool isDescricaoVazia = string.IsNullOrWhiteSpace(descricao) || descricao == "Vazio";
+
+                    // Lógica para exibir o conteúdo correto
+                    if ((!isAssuntoVazio && !isDescricaoVazia)&&(lastMove != null))
+                    {
+                        <h3><strong>@descricao</strong> @assunto</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>                       
+                    }
+                    else if ((!isAssuntoVazio && !isNumeroVazio)&&(lastMove != null))
+                    {
+                        <h3><strong>@assunto</strong> @numero</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    else if (!isNumeroVazio && (lastMove != null))
+                    {
+                        <h3> @numero</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    else if (!isDataEmissaoVazia && (lastMove != null))
+                    {
+                        <h3> @dataEmissao</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    else 
+                    {
+                        <h3>Protocolo sem identificadores</h3>
+                        <h6>Atualmente em: @lastMove.SetorDestino</h6> 
+                        <p>Desde: @lastMove.Data @lastMove.Hora </p>
+                    }
+                    
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <p>Nenhum protocolo encontrado.</p>
+    }
+
+    @if (isModalVisible && selectedProtocol != null)
+    {
+      <div class="fade-in " >
+        <div class="modal">
+            <div class="modal-content">
+                <span class="close-button" @onclick="HideModal">&times;</span>
+                <h3>Protocolo: @selectedProtocol.Header.Numero</h3>
+                <p><strong>Interessado:</strong> @selectedProtocol.Header.Interessado</p>
+                <p><strong>Solicitante:</strong> @selectedProtocol.Header.Solicitante</p>
+                <p><strong>Inspetoria:</strong> @selectedProtocol.Header.Inspetoria</p>
+                <p><strong>Assunto:</strong> @selectedProtocol.Header.Assunto</p>
+                <p><strong>Origem:</strong> @selectedProtocol.Header.Origem</p>
+                <p><strong>Situação:</strong> @selectedProtocol.Header.Situacao</p>
+                <p><strong>Destino:</strong> @selectedProtocol.Header.Destino</p>
+                <p><strong>Sigiloso:</strong> @selectedProtocol.Header.Sigiloso?</p>
+                <p><strong>Data de Emissão:</strong> @selectedProtocol.Header.DataEmissao?</p>
+                <p><strong>Descrição:</strong> @selectedProtocol.Header.Descricao</p>
+
+                <h4>Movimentações:</h4>
+                @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
+                {
+                    @foreach (var move in selectedProtocol.Moves)
+                    {
+                        <div class="move-card">
+                            <p><strong>Passo:</strong> @move.Passo</p>
+                            <p><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</p>
+                            <p><strong>Usuário de Destino:</strong> @move.UsuarioDestino</p>
+                            <p><strong>Setor de Origem:</strong> @move.SetorOrigem</p>
+                            <p><strong>Setor de Destino:</strong> @move.SetorDestino</p>
+                            <p><strong>Descrição:</strong> @move.Descricao</p>
+                            <p><strong>Data:</strong> @move.Data?</p>
+                            <p><strong>Hora:</strong> @move.Hora?</p>
+                            <p><strong>Sigiloso:</strong> @move.Sigiloso?</p>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Nenhuma movimentação encontrada.</p>
+                }
+            </div>
+        </div>
+      </div>
+    }
+</div>
+
+
+<style>
+    .protocol-card {
+        border: 1px solid #ccc;
+        margin: 10px;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    .modal {
+        display: block;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-height: 70%;
+        overflow-y: auto;
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .move-card {
+        border: 1px solid #ccc;
+        margin-top: 10px;
+        padding: 10px;
+    }
+</style>

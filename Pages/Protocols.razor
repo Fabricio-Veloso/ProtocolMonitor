@@ -1,0 +1,139 @@
+@page "/protocols"
+@using System.Threading.Tasks
+@using System.Text.Json
+@inject WebSocketService WebSocketService
+@using MyBlazorPwa
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@inject IJSRuntime JSRuntime
+
+<h1>Protocol Monitor</h1>
+
+@if (isLoading)
+{
+  <div class="fade-in">
+    <div class="loader"></div> <span>Adicionando novo protocolo</span>
+  </div>
+}
+@if(isLoading = false){
+  <div class="fade-out">
+    <div class="loader"></div>
+  </div>
+}
+@if (isConnecting)
+{
+  <div class="fade-in">
+    <div class="loader"></div> <span>Estabelecendo conexão com o back-end local</span>
+  </div>
+}
+else if (isConnected && !hasConnectionMessageDisappeared)
+{
+  <div class="fade-out"> <span>Conexão estabelecida!</span>
+  </div>
+}
+
+<form id="textForm" @onsubmit="RequestProtocolData">
+    <label for="userInput">Insira o número do protocolo:</label>
+    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="200248809">
+    <button type="submit">Enviar</button>
+</form>
+
+
+@if (protocols.Any()) // Verifica se há protocolos na lista
+{
+    <div class="fade-in">
+      <ProtocolVisualizer protocolsList="@protocols"/>
+    </div>
+}
+
+
+
+else if (ProtocolRequestStatus != true)
+{
+  <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
+}
+@if (!protocols.Any())
+{
+  <p>Não há protocolos salvos. Por favor pesquise Novos protocolos</p>
+}
+
+@code {
+  private bool ProtocolRequestStatus = true;
+  private string? userInput;
+  private bool isLoading = false; // Começar sem loading
+  private bool isConnecting = true;
+  private bool isConnected = false; // Estado para conexão
+  private bool hasConnectionMessageDisappeared = false; // Estado para controle de mensagem
+  private string? receivedMessage;
+  private ProtocolData protocolInstance = new ProtocolData();
+  private List<ProtocolData> protocols = new List<ProtocolData>();
+  
+
+  private async Task ConnectWebSocket() {
+    await WebSocketService.ConnectAsync();
+  }
+
+  private async Task RequestProtocolData() {
+  ProtocolRequestStatus = true;
+  isLoading = true;
+  receivedMessage = null;
+  StateHasChanged();
+
+  await WebSocketService.SendAsync("ProtocolScrape " + userInput);
+  receivedMessage = await WebSocketService.ReceiveAsync();
+
+  if (!string.IsNullOrEmpty(receivedMessage)) {
+    Console.WriteLine("Mensagem Recebida do Back-end Node");
+
+    // Crie uma nova instância de ProtocolData para cada novo protocolo recebido
+    var newProtocolInstance = new ProtocolData();
+    ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
+
+    // Verifique se o protocolo já existe antes de adicionar
+    if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
+      protocols.Add(newProtocolInstance);
+      await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
+    }
+  }
+
+  isLoading = false; // Certifique-se de que o estado de carregamento seja encerrado
+  StateHasChanged();
+}
+
+
+  private async Task TryConnectWebSocket() {
+    while (!isConnected) {
+      isConnecting = true; // Mostrar loader
+      StateHasChanged();
+      try {
+        await ConnectWebSocket();
+        isConnected = true; // Definir como conectado
+        isConnecting = false; // Remover loader
+        await ShowConnectionMessage(); // Mostrar a mensagem de conexão
+      } catch (Exception) {
+        // Se falhar, espere um pouco antes de tentar novamente
+        await Task.Delay(2000);
+      }
+    }
+  }
+
+  private async Task ShowConnectionMessage() {
+    await Task.Delay(500); // Esperar um pouco antes de mostrar a mensagem
+    hasConnectionMessageDisappeared = false;
+    StateHasChanged();
+    await Task.Delay(2000); // Tempo da mensagem de conexão
+    hasConnectionMessageDisappeared = true;
+    StateHasChanged();
+  }
+
+  protected override async Task OnInitializedAsync() {
+    var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
+
+    if (savedProtocols != null) {
+      protocols = savedProtocols; // Carregue protocolos salvos
+    }
+
+    // Tentar conectar ao WebSocket automaticamente
+    await TryConnectWebSocket();
+  }
+}
