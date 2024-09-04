@@ -32,11 +32,18 @@ else if (isConnected && !hasConnectionMessageDisappeared)
   </div>
 }
 
-<form id="textForm" @onsubmit="RequestProtocolData">
-    <label for="userInput">Insira o número do protocolo:</label>
-    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="200248809">
-    <button type="submit">Enviar</button>
-</form>
+<div>
+  <form id="textForm" @onsubmit="RequestProtocolData">
+    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="Número do protocolo">
+    <button type="submit">Pesquisar Protocolo</button> 
+  </form>
+  <DropDown  OnSectorChange="BySectorRequestMiniProtocolData"/> 
+</div>
+
+
+
+
+
 
 
 @if (protocols.Any()) // Verifica se há protocolos na lista
@@ -46,7 +53,12 @@ else if (isConnected && !hasConnectionMessageDisappeared)
     </div>
 }
 
-
+@if (miniprotocols.Any()) // Verifica se há protocolos na lista
+{
+  <div class="fade-in">
+    <MiniProtocolVisualizer miniprotocolsList="@miniprotocols"/>
+  </div>
+}
 
 else if (ProtocolRequestStatus != true)
 {
@@ -67,7 +79,8 @@ else if (ProtocolRequestStatus != true)
   private string? receivedMessage;
   private ProtocolData protocolInstance = new ProtocolData();
   private List<ProtocolData> protocols = new List<ProtocolData>();
-  
+  private MiniProtocolData miniProtocolInstance = new MiniProtocolData();
+   private List<MiniProtocolData> miniprotocols = new List<MiniProtocolData>();
 
   private async Task ConnectWebSocket() {
     await WebSocketService.ConnectAsync();
@@ -83,7 +96,7 @@ else if (ProtocolRequestStatus != true)
   receivedMessage = await WebSocketService.ReceiveAsync();
 
   if (!string.IsNullOrEmpty(receivedMessage)) {
-    Console.WriteLine("Mensagem Recebida do Back-end Node");
+    Console.WriteLine("Dados de protocolo enviado - Mensagem Recebida do Back-end Node");
 
     // Crie uma nova instância de ProtocolData para cada novo protocolo recebido
     var newProtocolInstance = new ProtocolData();
@@ -100,6 +113,35 @@ else if (ProtocolRequestStatus != true)
   StateHasChanged();
 }
 
+  private async Task BySectorRequestMiniProtocolData(string sector) {
+  ProtocolRequestStatus = true;
+  isLoading = true;
+  receivedMessage = null;
+  StateHasChanged();
+
+  await WebSocketService.SendAsync("BySectorMiniProtocolsScrape " + sector);
+  receivedMessage = await WebSocketService.ReceiveAsync();
+
+  if (!string.IsNullOrEmpty(receivedMessage)) {
+    Console.WriteLine(" Resultado da busca por miniprotocolos, enviada - Mensagem Recebida do Back-end Node");
+
+    // Crie uma nova instância de ProtocolData para cada novo protocolo recebido
+    var newMiniProtocolList = new List<MiniProtocolData>();
+    ProtocolLoader.MiniPD_FromJson(receivedMessage, ref newMiniProtocolList);
+
+    // Verifique se o protocolo já existe antes de adicionar
+    foreach(MiniProtocolData miniProtocol in newMiniProtocolList){
+      if (!miniprotocols.Any(p => p.Numero == miniProtocol.Numero)) {
+      miniprotocols.Add(miniProtocol);
+      // Salve a lista no Local Storage
+      }
+    }
+    await localStorage.SetItemAsync("miniprotocols", miniprotocols); 
+  }
+
+  isLoading = false; // Certifique-se de que o estado de carregamento seja encerrado
+  StateHasChanged();
+}
 
   private async Task TryConnectWebSocket() {
     while (!isConnected) {

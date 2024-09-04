@@ -8,7 +8,7 @@
         {
             <div class="miniprotocol-card">
                 @{
-                    // Obter os valores do protocolo
+                   
                     var numero = protocol.Numero;
                     var assunto = protocol.Assunto;
                     var dataUltimoMovimento = protocol.DataUltimoMovimento;
@@ -16,7 +16,7 @@
                     var localizacaoAtual = protocol.LocalizacaoAtual;
                     var descricao = protocol.Descricao;
 
-                    // Verificar se os campos estão "Vazio"
+                    
                     bool isNumeroVazio = string.IsNullOrWhiteSpace(numero) || numero == "Vazio";
                     bool isAssuntoVazio = string.IsNullOrWhiteSpace(assunto) || assunto == "Vazio";
                     bool isDescricaoVazia = string.IsNullOrWhiteSpace(descricao) || descricao == "Vazio";
@@ -24,14 +24,14 @@
                     bool isHoraUltimoMovimentoVazia = string.IsNullOrWhiteSpace(horaUltimoMovimento) || horaUltimoMovimento == "Vazio";
                     bool isLocalizacaoAtualVazia = string.IsNullOrWhiteSpace(localizacaoAtual) || localizacaoAtual == "Vazio";
 
-                    // Verificar se todos os campos estão vazios
+                    
                     bool todosVazios = isNumeroVazio && isAssuntoVazio && isDescricaoVazia && isDataUltimoMovimentoVazia && isHoraUltimoMovimentoVazia && isLocalizacaoAtualVazia;
                 }
 
-                // Lógica para exibir o conteúdo correto
-                if (!todosVazios)
+                
+                @if (!todosVazios)
                 {
-                    if ((!isAssuntoVazio && !isDescricaoVazia) && (!isLocalizacaoAtualVazia))
+                    @if ((!isAssuntoVazio && !isDescricaoVazia) && (!isLocalizacaoAtualVazia))
                     {
                         <h3><strong>@descricao</strong> @assunto</h3>
                         <h6>Atualmente em: @localizacaoAtual</h6>

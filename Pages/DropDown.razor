@@ -1,0 +1,34 @@
+@code {
+    [Parameter]
+    public Func<string, Task> OnSectorChange { get; set; }
+
+    private async Task ProcessSector(ChangeEventArgs e)
+    {
+        var selectedSector = e.Value.ToString();
+        if (OnSectorChange != null)
+        {
+            await OnSectorChange.Invoke(selectedSector);
+        }
+    }
+}
+
+
+<select @onchange="ProcessSector">
+    <option value="Seu Setor">Seu Setor</option>
+    <option value="Licitações">Licitações</option>
+    
+    <!-- Adicione mais opções aqui se necessário -->
+</select>
+
+
+<style>
+    select {
+        padding: 10px; /* Espaçamento interno */
+        font-size: 16px; /* Tamanho da fonte */
+        border: 1px solid #ccc; /* Borda */
+        border-radius: 4px; /* Bordas arredondadas */
+        cursor: pointer; /* Muda o cursor ao passar sobre o botão */
+    }
+
+    /* Estilos adicionais se desejado */
+</style>
