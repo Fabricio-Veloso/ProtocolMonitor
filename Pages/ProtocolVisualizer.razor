@@ -39,7 +39,9 @@
                     var descricao = protocol.Header.Descricao;
 
                     // Obter a última movimentação
+                    if protocol.Moves != null{
                     var lastMove = protocol.Moves.LastOrDefault();
+                    }
 
                     // Verificar se há uma última movimentação
                     if (lastMove != null)

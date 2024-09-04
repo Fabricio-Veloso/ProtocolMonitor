@@ -133,6 +133,9 @@ namespace MyBlazorPwa
                     case "Solicitante":
                         protocolData.Header.Solicitante = value;
                         break;
+                    case "Descrição":
+                        protocolData.Header.Descricao = value;
+                        break;
                     case "Interessado(s)":
                         protocolData.Header.Interessado = value;
                         break;
@@ -237,9 +240,6 @@ namespace MyBlazorPwa
   }
 
   public class Header{
-    public string? DataUltimoMoviemnto { get; set; } = "Vazio";
-    public string? HoraUltimoMovimento { get; set; } = "Vazio";
-    public string? LocalizacaoAtual    { get; set; } = "Vazio";
     public string? Interessado         { get; set; } = "Vazio";
     public string? Solicitante         { get; set; } = "Vazio";
     public String? Numero              { get; set; } = "Vazio";

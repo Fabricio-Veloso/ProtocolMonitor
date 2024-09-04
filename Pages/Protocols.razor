@@ -4,6 +4,7 @@
 @inject WebSocketService WebSocketService
 @using MyBlazorPwa
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+
 @inject IJSRuntime JSRuntime
 
 <h1>Protocol Monitor</h1>
@@ -45,16 +46,11 @@ else if (isConnected && !hasConnectionMessageDisappeared)
     </div>
 }
 
-@if(miniprotocols.Any())
-{
-  <div class="fade-in">
-    <MiniProtocolVisualizer miniprotocolsList="@miniprotocols"/>
-  </div>
-}
+
 
 else if (ProtocolRequestStatus != true)
 {
-    <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
+  <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
 }
 @if (!protocols.Any())
 {
@@ -64,95 +60,80 @@ else if (ProtocolRequestStatus != true)
 @code {
   private bool ProtocolRequestStatus = true;
   private string? userInput;
-  private bool isLoading = false; // Começar com loading
+  private bool isLoading = false; // Começar sem loading
   private bool isConnecting = true;
-  private bool isConnected = false; // Novo estado para conexão
-  private bool hasConnectionMessageDisappeared = false; // Novo estado para controle de mensagem
+  private bool isConnected = false; // Estado para conexão
+  private bool hasConnectionMessageDisappeared = false; // Estado para controle de mensagem
   private string? receivedMessage;
-  private string? receivedData;
   private ProtocolData protocolInstance = new ProtocolData();
   private List<ProtocolData> protocols = new List<ProtocolData>();
-  //private MiniProtocolData miniProtocolInstance = new MiniProtocolData();
-  private List<MiniProtocolData> miniprotocols = new List<MiniProtocolData>();
+  
 
-  private async Task ConnectWebSocket()
-  {
-      await WebSocketService.ConnectAsync();
+  private async Task ConnectWebSocket() {
+    await WebSocketService.ConnectAsync();
   }
 
-  private async Task RequestProtocolData()
-  {
-    ProtocolRequestStatus = true;
-    isLoading = true;
-    receivedMessage = null;
-    StateHasChanged();
+  private async Task RequestProtocolData() {
+  ProtocolRequestStatus = true;
+  isLoading = true;
+  receivedMessage = null;
+  StateHasChanged();
 
-    await WebSocketService.SendAsync("ProtocolScrape " + userInput);
-    receivedMessage = await WebSocketService.ReceiveAsync();
-    
-    if (userInput == "Licitação")
-      {
-      ProtocolLoader.MiniPD_FromJson(receivedMessage, ref miniprotocols);
-      }
-      else{
-    if (!string.IsNullOrEmpty(receivedMessage))
-    {
-      Console.WriteLine("Mensagem Recebida do Back-end Node");
-      ProtocolLoader.PD_FromJson(receivedMessage, ref protocolInstance);
-      
-      // Verifique se o protocolo já existe antes de adicionar
-      if (!protocols.Any(p => p.Header.Numero == protocolInstance.Header.Numero))
-      {
-        protocols.Add(protocolInstance);
-        await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
-      }
-    }
-    isLoading = false;
-    StateHasChanged();
+  await WebSocketService.SendAsync("ProtocolScrape " + userInput);
+  receivedMessage = await WebSocketService.ReceiveAsync();
+
+  if (!string.IsNullOrEmpty(receivedMessage)) {
+    Console.WriteLine("Mensagem Recebida do Back-end Node");
+
+    // Crie uma nova instância de ProtocolData para cada novo protocolo recebido
+    var newProtocolInstance = new ProtocolData();
+    ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
+
+    // Verifique se o protocolo já existe antes de adicionar
+    if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
+      protocols.Add(newProtocolInstance);
+      await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
     }
   }
 
-    protected override async Task OnInitializedAsync()
-    {
-      var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
-      
-      if (savedProtocols != null)
-      {
-          protocols = savedProtocols; // Carregue protocolos salvos
+  isLoading = false; // Certifique-se de que o estado de carregamento seja encerrado
+  StateHasChanged();
+}
+
+
+  private async Task TryConnectWebSocket() {
+    while (!isConnected) {
+      isConnecting = true; // Mostrar loader
+      StateHasChanged();
+      try {
+        await ConnectWebSocket();
+        isConnected = true; // Definir como conectado
+        isConnecting = false; // Remover loader
+        await ShowConnectionMessage(); // Mostrar a mensagem de conexão
+      } catch (Exception) {
+        // Se falhar, espere um pouco antes de tentar novamente
+        await Task.Delay(2000);
       }
+    }
+  }
 
-      // Tentar conectar ao WebSocket automaticamente
-      await TryConnectWebSocket();
+  private async Task ShowConnectionMessage() {
+    await Task.Delay(500); // Esperar um pouco antes de mostrar a mensagem
+    hasConnectionMessageDisappeared = false;
+    StateHasChanged();
+    await Task.Delay(2000); // Tempo da mensagem de conexão
+    hasConnectionMessageDisappeared = true;
+    StateHasChanged();
+  }
+
+  protected override async Task OnInitializedAsync() {
+    var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
+
+    if (savedProtocols != null) {
+      protocols = savedProtocols; // Carregue protocolos salvos
     }
 
-    private async Task TryConnectWebSocket()
-    {
-        while (!isConnected)
-        {
-            isConnecting = true; // Mostrar loader
-            StateHasChanged();
-            try
-            {
-                await ConnectWebSocket();
-                isConnected = true; // Definir como conectado
-                isConnecting= false; // Remover loader
-                await ShowConnectionMessage(); // Mostrar a mensagem de conexão
-            }
-            catch (Exception)
-            {
-                // Se falhar, espere um pouco antes de tentar novamente
-                await Task.Delay(2000);
-            }
-        }
-    }
-
-    private async Task ShowConnectionMessage()
-    {
-        await Task.Delay(500); // Esperar um pouco antes de mostrar a mensagem
-        hasConnectionMessageDisappeared = false;
-        StateHasChanged();
-        await Task.Delay(2000); // Tempo da mensagem de conexão
-        hasConnectionMessageDisappeared = true;
-        StateHasChanged();
-    }
+    // Tentar conectar ao WebSocket automaticamente
+    await TryConnectWebSocket();
+  }
 }
