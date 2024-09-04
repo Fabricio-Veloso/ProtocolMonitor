@@ -37,18 +37,18 @@
                     var assunto = protocol.Header.Assunto;
                     var dataEmissao = protocol.Header.DataEmissao;
                     var descricao = protocol.Header.Descricao;
-
+                    Moves lastMove = new Moves();
                     // Obter a última movimentação
-                    if protocol.Moves != null{
-                    var lastMove = protocol.Moves.LastOrDefault();
+                    if (protocol.Moves != null){
+                    lastMove = protocol.Moves.LastOrDefault();
                     }
 
                     // Verificar se há uma última movimentação
                     if (lastMove != null)
                     {
-                      var dataMovimento = lastMove.Data;
-                      var horaMovimento = lastMove.Hora;
-                      var setorDestino = lastMove.SetorDestino;
+                      string dataMovimento = lastMove.Data;
+                      string horaMovimento = lastMove.Hora;
+                      string setorDestino = lastMove.SetorDestino;
                     }
 
                     // Verificar se os campos estão "Vazio"
