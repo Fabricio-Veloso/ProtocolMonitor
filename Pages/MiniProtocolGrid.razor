@@ -1,0 +1,85 @@
+@using MyBlazorPwa
+@inject IJSRuntime JSRuntime
+
+<div class="miniprotocol-grid">
+    @if (miniProtocolsList != null && miniProtocolsList.Any())
+    {
+        @foreach (var protocol in miniProtocolsList)
+        {
+            <div class="miniprotocol-card @(GetColorClass(protocol.DataUltimoMovimento))" @onclick="() => ShowModal(protocol)">
+                <div class="content">
+                    <p class="description">@protocol.Descricao</p>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Nenhum protocolo encontrado.</p>
+    }
+
+    @if (isModalVisible && selectedProtocol != null)
+    {
+        <div class="modal">
+            <div class="modal-content">
+                <span class="close-button" @onclick="HideModal">&times;</span>
+                <h3>@selectedProtocol.Assunto</h3>
+                <p><strong>Número:</strong> @selectedProtocol.Numero</p>
+                <p><strong>Descrição:</strong> @selectedProtocol.Descricao</p>
+                <p><strong>Localização Atual:</strong> @selectedProtocol.LocalizacaoAtual</p>
+                <p><strong>Último Movimento:</strong> @selectedProtocol.DataUltimoMovimento @selectedProtocol.HoraUltimoMovimento</p>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    
+</style>
+
+@code {
+    [Parameter]
+    public List<MiniProtocolData> miniProtocolsList { get; set; } = new List<MiniProtocolData>();
+
+    private bool isModalVisible = false;
+    private MiniProtocolData? selectedProtocol = null;
+
+    private void ShowModal(MiniProtocolData protocol)
+    {
+        selectedProtocol = protocol;
+        isModalVisible = true;
+        StateHasChanged(); 
+    }
+
+    private void HideModal()
+    {
+        isModalVisible = false;
+        selectedProtocol = null;
+    }
+
+    private string GetColorClass(string dataUltimoMovimento)
+    {
+        if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
+        {
+            var daysDifference = (DateTime.Now - lastMoveDate).TotalDays;
+
+            if (daysDifference <= 3)
+            {
+                return "green";
+            }
+            else if (daysDifference <= 2)
+            {
+                return "yellow";
+            }
+            else if (daysDifference <= 1)
+            {
+                return "red";
+            }
+            else
+            {
+                return "black";
+            }
+        }
+        return string.Empty;
+    }
+}

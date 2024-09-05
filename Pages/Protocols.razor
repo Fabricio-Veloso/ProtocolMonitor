@@ -50,15 +50,25 @@ else if (isConnected && !hasConnectionMessageDisappeared)
 @if (miniprotocols.Any()) // Verifica se há protocolos na lista
 {
   <div class="fade-in">
-    <MiniProtocolVisualizer miniprotocolsList="@miniprotocols" expectedMoveDate = "@expectativaMovimentacao" currentDate = "@dataAtual" />
+    <MiniProtocolGrid miniProtocolsList = "@miniprotocols" />
   </div>
 }
 
-else if (ProtocolRequestStatus != true)
+<!--
+expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual 
+@if (miniprotocols.Any()) // Verifica se há protocolos na lista
+{
+  <div class="fade-in">
+    <MiniProtocolVisualizer miniprotocolsList="@miniprotocols" expectedMoveDate = "@expectativaMovimentacao" currentDate = "@dataAtual" />
+  </div>
+}
+-->
+
+@if (ProtocolRequestStatus != true)
 {
   <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
 }
-@if (!protocols.Any())
+@if (!protocols.Any() && !miniprotocols.Any())
 {
   <p>Não há protocolos salvos. Por favor pesquise Novos protocolos</p>
 }
@@ -166,10 +176,13 @@ else if (ProtocolRequestStatus != true)
 
   protected override async Task OnInitializedAsync() {
     var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
-
-    if (savedProtocols != null) {
-      protocols = savedProtocols; // Carregue protocolos salvos
+    
+    var savedMiniProtocols = await localStorage.GetItemAsync<List<MiniProtocolData>>("miniprotocols");
+    if (savedMiniProtocols != null) {
+      miniprotocols = savedMiniProtocols; // Carregue protocolos salvos
     }
+    
+    
 
     // Tentar conectar ao WebSocket automaticamente
     await TryConnectWebSocket();
