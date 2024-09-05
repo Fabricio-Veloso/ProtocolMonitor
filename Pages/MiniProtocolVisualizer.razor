@@ -1,14 +1,13 @@
 @using MyBlazorPwa
 
-
 <div class="miniprotocol-visualizer">
     @if (miniprotocolsList != null && miniprotocolsList.Any())
     {
         @foreach (var protocol in miniprotocolsList)
         {
-            <div class="miniprotocol-card">
+            <div class="miniprotocol-card @(GetColorClass(protocol.DataUltimoMovimento))">
                 @{
-                   
+                    
                     var numero = protocol.Numero;
                     var assunto = protocol.Assunto;
                     var dataUltimoMovimento = protocol.DataUltimoMovimento;
@@ -16,7 +15,7 @@
                     var localizacaoAtual = protocol.LocalizacaoAtual;
                     var descricao = protocol.Descricao;
 
-                    
+                   
                     bool isNumeroVazio = string.IsNullOrWhiteSpace(numero) || numero == "Vazio";
                     bool isAssuntoVazio = string.IsNullOrWhiteSpace(assunto) || assunto == "Vazio";
                     bool isDescricaoVazia = string.IsNullOrWhiteSpace(descricao) || descricao == "Vazio";
@@ -77,6 +76,26 @@
         cursor: pointer;
     }
 
+    .green {
+        background-color: green;
+        color: white;
+    }
+
+    .yellow {
+        background-color: yellow;
+        color: black;
+    }
+
+    .red {
+        background-color: red;
+        color: white;
+    }
+
+    .black {
+        background-color: black;
+        color: white;
+    }
+
     .modal {
         display: block;
         position: fixed;
@@ -122,6 +141,41 @@
 </style>
 
 @code {
-  [Parameter]
-  public List<MiniProtocolData> miniprotocolsList { get; set; } = new List<MiniProtocolData>();
+    [Parameter]
+    public List<MiniProtocolData> miniprotocolsList { get; set; } = new List<MiniProtocolData>();
+
+    [Parameter]
+    public DateTime expectedMoveDate { get; set; }  
+
+    [Parameter]
+    public DateTime currentDate { get; set; } 
+
+    private string GetColorClass(string dataUltimoMovimento)
+    {
+        if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
+        {
+            var daysDifference = (currentDate - lastMoveDate).TotalDays;
+
+            if (daysDifference <= 3)
+            {
+                return "green";
+            }
+            else if (daysDifference <= 2)
+            {
+                return "yellow";
+            }
+            else if (daysDifference <= 1)
+            {
+                return "red";
+            }
+            else
+            {
+                return "black";
+            }
+        }
+        return string.Empty;
+    }
+
 }
+
+
