@@ -134,8 +134,14 @@ namespace MyBlazorPwa
                         protocolData.Header.Solicitante = value;
                         break;
                     case "Descrição":
-                        protocolData.Header.Descricao = value;
-                        break;
+                      // Remove o texto "PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS" se existir
+                      if (value.Contains("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS"))
+                      {
+                          value = value.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS", "").Trim();
+                      }
+                      protocolData.Header.Descricao = value;
+                      break;
+
                     case "Interessado(s)":
                         protocolData.Header.Interessado = value;
                         break;
@@ -231,7 +237,6 @@ namespace MyBlazorPwa
     // Remova a propriedade recursiva ou modifique conforme necessário
     // public MiniProtocolData miniProtocolData { get; set; } = new MiniProtocolData();
 }
-
 
   public class ProtocolData{
     public Header Header { get; set; } = new Header();

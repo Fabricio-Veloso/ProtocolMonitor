@@ -41,6 +41,15 @@
     [Parameter]
     public List<MiniProtocolData> miniProtocolsList { get; set; } = new List<MiniProtocolData>();
 
+    [Parameter]
+    public int ConfigVerde { get; set; }
+    
+    [Parameter]
+    public int ConfigAmarelo { get; set; }
+    
+    [Parameter]
+    public int ConfigVermelho { get; set; }
+
     private bool isModalVisible = false;
     private MiniProtocolData? selectedProtocol = null;
 
@@ -63,15 +72,15 @@
         {
             var daysDifference = (DateTime.Now - lastMoveDate).TotalDays;
 
-            if (daysDifference <= 3)
-            {
-                return "green";
-            }
-            else if (daysDifference <= 2)
+            if (daysDifference <= ConfigVerde)
             {
                 return "yellow";
             }
-            else if (daysDifference <= 1)
+            else if (daysDifference <= ConfigAmarelo )
+            {
+                return "green";
+            }
+            else if (daysDifference <= ConfigVermelho)
             {
                 return "red";
             }
@@ -81,5 +90,6 @@
             }
         }
         return string.Empty;
-    }
+  }
 }
+
