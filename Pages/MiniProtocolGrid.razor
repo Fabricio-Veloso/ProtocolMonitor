@@ -1,10 +1,11 @@
 @using MyBlazorPwa
 @inject IJSRuntime JSRuntime
 
+
 <div class="miniprotocol-grid">
     @if (miniProtocolsList != null && miniProtocolsList.Any())
     {
-        @foreach (var protocol in miniProtocolsList)
+        @foreach (var protocol in miniProtocolsList.Where(p => !IsInBlacklist(p.Numero)))
         {
             <div class="miniprotocol-card @(GetColorClass(protocol.DataUltimoMovimento))" @onclick="() => ShowModal(protocol)">
                 <div class="content">
@@ -28,30 +29,45 @@
                 <p><strong>Descrição:</strong> @selectedProtocol.Descricao</p>
                 <p><strong>Localização Atual:</strong> @selectedProtocol.LocalizacaoAtual</p>
                 <p><strong>Último Movimento:</strong> @selectedProtocol.DataUltimoMovimento @selectedProtocol.HoraUltimoMovimento</p>
+                <button @onclick="() => AddToBlacklist(selectedProtocol.Numero)">Não tenho interesse</button>
             </div>
         </div>
     }
 </div>
-
-<style>
-    
-</style>
 
 @code {
     [Parameter]
     public List<MiniProtocolData> miniProtocolsList { get; set; } = new List<MiniProtocolData>();
 
     [Parameter]
-    public int ConfigVerde { get; set; }
-    
-    [Parameter]
-    public int ConfigAmarelo { get; set; }
-    
-    [Parameter]
-    public int ConfigVermelho { get; set; }
+    public ByTimeColorConfig Config { get; set; }
 
     private bool isModalVisible = false;
     private MiniProtocolData? selectedProtocol = null;
+
+    // Lista negra para armazenar números de protocolos
+    private HashSet<string> blacklist = new HashSet<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBlacklistFromLocalStorage();
+    }
+
+    private async Task SaveBlacklistToLocalStorage()
+{
+    var json = JsonConvert.SerializeObject(blacklist); // Serializa a blacklist
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "blacklist", json); // Armazena no localStorage
+}
+
+    private async Task LoadBlacklistFromLocalStorage()
+{
+    var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "blacklist"); // Obtém o JSON do localStorage
+    if (!string.IsNullOrEmpty(json))
+    {
+        blacklist = JsonConvert.DeserializeObject<HashSet<string>>(json); // Desserializa a blacklist
+    }
+}
+
 
     private void ShowModal(MiniProtocolData protocol)
     {
@@ -66,30 +82,42 @@
         selectedProtocol = null;
     }
 
+    private async Task AddToBlacklist(string numero)
+    {
+        blacklist.Add(numero); // Adiciona o número à lista negra
+        await SaveBlacklistToLocalStorage(); // Salva a blacklist no localStorage
+        HideModal(); // Oculta o modal após adicionar
+        StateHasChanged(); // Atualiza a interface
+    }
+
+    private bool IsInBlacklist(string numero)
+    {
+        return blacklist.Contains(numero); // Verifica se o número está na lista negra
+    }
+
     private string GetColorClass(string dataUltimoMovimento)
     {
         if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
         {
             var daysDifference = (DateTime.Now - lastMoveDate).TotalDays;
 
-            if (daysDifference <= ConfigVerde)
+            if (daysDifference <= Config.ConfigVerde)
             {
-                return "yellow";
+                return Config.ColorVerde; // Cor configurada para "verde"
             }
-            else if (daysDifference <= ConfigAmarelo )
+            else if (daysDifference <= Config.ConfigAmarelo)
             {
-                return "green";
+                return Config.ColorAmarelo; // Cor configurada para "amarelo"
             }
-            else if (daysDifference <= ConfigVermelho)
+            else if (daysDifference <= Config.ConfigVermelho)
             {
-                return "red";
+                return Config.ColorVermelho; // Cor configurada para "vermelho"
             }
             else
             {
-                return "black";
+                return Config.ColorPreto; // Cor configurada para "preto"
             }
         }
         return string.Empty;
-  }
+    }
 }
-

@@ -180,15 +180,15 @@ namespace MyBlazorPwa
                 var moveValues = move.EnumerateArray();
                 var moves = new Moves
                 {
-                    Passo = moveValues.ElementAtOrDefault(0).GetString() ?? "Vazio",
-                    UsuarioOrigem = moveValues.ElementAtOrDefault(1).GetString() ?? "Vazio",
-                    UsuarioDestino = moveValues.ElementAtOrDefault(2).GetString() ?? "Vazio",
-                    SetorOrigem = moveValues.ElementAtOrDefault(3).GetString() ?? "Vazio",
-                    SetorDestino = moveValues.ElementAtOrDefault(4).GetString() ?? "Vazio",
-                    Descricao = moveValues.ElementAtOrDefault(5).GetString() ?? "Vazio",
-                    Data = moveValues.ElementAtOrDefault(6).GetString() ?? "Vazio",
-                    Hora = moveValues.ElementAtOrDefault(7).GetString() ?? "Vazio",
-                    Sigiloso = moveValues.ElementAtOrDefault(8).GetString() ?? "Vazio"
+                  Passo = moveValues.ElementAtOrDefault(0).GetString() ?? "Vazio",
+                  UsuarioOrigem = moveValues.ElementAtOrDefault(1).GetString() ?? "Vazio",
+                  UsuarioDestino = moveValues.ElementAtOrDefault(2).GetString() ?? "Vazio",
+                  SetorOrigem = moveValues.ElementAtOrDefault(3).GetString() ?? "Vazio",
+                  SetorDestino = moveValues.ElementAtOrDefault(4).GetString() ?? "Vazio",
+                  Descricao = moveValues.ElementAtOrDefault(5).GetString() ?? "Vazio",
+                  Data = moveValues.ElementAtOrDefault(6).GetString() ?? "Vazio",
+                  Hora = moveValues.ElementAtOrDefault(7).GetString() ?? "Vazio",
+                  Sigiloso = moveValues.ElementAtOrDefault(8).GetString() ?? "Vazio"
                 };
 
                 protocolData.Moves.Add(moves);
@@ -274,6 +274,19 @@ namespace MyBlazorPwa
     public string Sigiloso { get; set; } = "Vazio";
   }
   
+  public class ByTimeColorConfig{
+    /*TIME*/
+    public int? ConfigExpectativaMovimentacao  { get; set; } = 0 ;
+    public int? ConfigVerde  { get; set; } = 0 ;
+    public int? ConfigAmarelo  { get; set; } = 0 ;
+    public int? ConfigVermelho  { get; set; } = 0 ;
+    
+    /*COLORS*/
+    public string ColorVerde { get; set; } = "green";
+    public string ColorAmarelo { get; set; } = "yellow";
+    public string ColorVermelho { get; set; } = "red";
+    public string ColorPreto { get; set; } = "black";
+  }
 }
 
 
