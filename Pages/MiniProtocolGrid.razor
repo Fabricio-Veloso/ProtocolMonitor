@@ -14,10 +14,7 @@
             </div>
         }
     }
-    else
-    {
-        <p>Nenhum protocolo encontrado.</p>
-    }
+    
 
     @if (isModalVisible && selectedProtocol != null)
     {
@@ -67,7 +64,6 @@
         blacklist = JsonConvert.DeserializeObject<HashSet<string>>(json); // Desserializa a blacklist
     }
 }
-
 
     private void ShowModal(MiniProtocolData protocol)
     {

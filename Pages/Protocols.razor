@@ -6,8 +6,8 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 @inject IJSRuntime JSRuntime
-<h1>Protocol Monitor</h1>
-<h2>Tempo restante para a próxima atualização: @timeRemaining.Minutes:@timeRemaining.Seconds</h2>
+<h1 class="title">Protocol Monitor</h1>
+<!--<h2>Tempo restante para a próxima atualização: @timeRemaining.Minutes:@timeRemaining.Seconds</h2>-->
 
 @if (isLoading)
 {
@@ -33,14 +33,14 @@ else if (isConnected && !hasConnectionMessageDisappeared)
 }
 
 <div>
-  <form id="textForm" @onsubmit="RequestProtocolData">
-    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="Número do protocolo">
-    <button type="submit">Pesquisar Protocolo</button> 
+  <form id="textForm" @onsubmit="RequestProtocolData" style="margin-bottom: 20px;">
+    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="Número do protocolo" class="input-field">
+    <button type="submit" class="button">Pesquisar Protocolo</button>
   </form>
-  <DropDown  OnSectorChange="BySectorRequestMiniProtocolData"/> 
+  <DropDown OnSectorChange="BySectorRequestMiniProtocolData"/> 
 </div>
 
-<button @onclick="ShowConfigModal">Configurações</button>
+<button @onclick="ShowConfigModal" class="button">Configurações</button>
 
 @if (isConfigModalVisible)
 {
@@ -66,19 +66,23 @@ else if (isConnected && !hasConnectionMessageDisappeared)
     </div>
 }
 
-@if (protocols.Any()) // Verifica se há protocolos na lista
-{
-    <div class="fade-in">
-      <ProtocolVisualizer protocolsList="@protocols"/>
-    </div>
-}
-
-@if (miniprotocols.Any()) // Verifica se há protocolos na lista
+<!--
+@if (protocols.Any() || miniprotocols.Any()) // Verifica se há protocolos na lista
 {
   <div class="fade-in">
-    <MiniProtocolGrid miniProtocolsList="@miniprotocols" Config="colorConfig" />
+    <Mini protocolsList="@protocols" miniprotocolsList="@miniprotocols" Config="@colorConfig" />
   </div>
 }
+-->
+
+
+@if (protocols.Any() || miniprotocols.Any()) // Verifica se há protocolos na lista
+{
+  <div class="fade-in">
+    <ProtocolGrid protocolsList="@protocols" miniprotocolsList="@miniprotocols" Config="@colorConfig" />
+  </div>
+}
+
 
 <!--
 expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual 
@@ -254,6 +258,10 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
 
   protected override async Task OnInitializedAsync() {
     var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
+    if(savedProtocols != null){
+      protocols = savedProtocols;
+    }
+    
     var savedMiniProtocols = await localStorage.GetItemAsync<List<MiniProtocolData>>("miniprotocols");
     if (savedMiniProtocols != null) {
       miniprotocols = savedMiniProtocols; // Carregue protocolos salvos
@@ -268,10 +276,6 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     
     // Tentar conectar ao WebSocket automaticamente
     await TryConnectWebSocket();
-    
-    // Inicie o timer
-    //await StartTimer();
-    
     
   }
 }

@@ -1,0 +1,212 @@
+@using MyBlazorPwa
+@inject IJSRuntime JSRuntime
+
+<div class="miniprotocol-grid">
+    
+     @if (protocolsList != null && protocolsList.Any())
+    {
+        @foreach (var protocol in protocolsList)
+        {
+            <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))" @onclick="() => ShowProtocolModal(protocol)">
+                <div class="content">
+                    <p class="description">@protocol.Header.Descricao</p>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Nenhum protocolo encontrado.</p>
+    }
+
+    <!-- mostra os mini protocolos -->
+    @if (miniProtocolsList != null && miniProtocolsList.Any())
+    {
+        @foreach (var miniProtocol in miniProtocolsList.Where(p => !IsInBlacklist(p.Numero)))
+        {
+            <div class="miniprotocol-card @(GetColorClass(miniProtocol.DataUltimoMovimento))" @onclick="() => ShowMiniProtocolModal(miniProtocol)">
+                <div class="content">
+                    <p class="description">@miniProtocol.Descricao</p>
+                </div>
+            </div>
+        }
+    }else
+    {
+        <p>Nenhum Mini-protocolo encontrado.</p>
+    }
+    
+    <!-- Modal do protocolo completo -->
+    @if (isProtocolModalVisible && selectedProtocol != null)
+    {
+        <div class="modal">
+            <div class="modal-content">
+                <span class="close-button" @onclick="HideProtocolModal">&times;</span>
+                <h3>Protocolo: @selectedProtocol.Header?.Numero</h3>
+                    <p><strong>Interessado:</strong> @selectedProtocol.Header?.Interessado</p>
+                    <p><strong>Solicitante:</strong> @selectedProtocol.Header?.Solicitante</p>
+                    <p><strong>Inspetoria:</strong> @selectedProtocol.Header?.Inspetoria</p>
+                    <p><strong>Assunto:</strong> @selectedProtocol.Header?.Assunto</p>
+                    <p><strong>Origem:</strong> @selectedProtocol.Header?.Origem</p>
+                    <p><strong>Situação:</strong> @selectedProtocol.Header?.Situacao</p>
+                    <p><strong>Destino:</strong> @selectedProtocol.Header?.Destino</p>
+                    <p><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso?</p>
+                    <p><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao?</p>
+                    <p><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</p>
+                    <button @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Não tenho interesse</button>
+
+                    <h4>Movimentações:</h4>
+                    @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
+                    {
+                        @foreach (var move in selectedProtocol.Moves)
+                        {
+                          <div class="move-container">
+                              <div class="move-card">
+                                  <p><strong>Passo:</strong> @move.Passo</p>
+                                  <p><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</p>
+                                  <p><strong>Usuário de Destino:</strong> @move.UsuarioDestino</p>
+                                  <p><strong>Setor de Origem:</strong> @move.SetorOrigem</p>
+                                  <p><strong>Setor de Destino:</strong> @move.SetorDestino</p>
+                                  <p><strong>Descrição:</strong> @move.Descricao</p>
+                                  <p><strong>Data:</strong> @move.Data?</p>
+                                  <p><strong>Hora:</strong> @move.Hora?</p>
+                                  <p><strong>Sigiloso:</strong> @move.Sigiloso?</p>
+                              </div>
+                              @if (move != selectedProtocol.Moves.Last())
+                              {
+                                  <div class="move-separator"></div>
+                              }
+                          </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>Nenhuma movimentação encontrada.</p>
+                    }
+            </div>
+        </div>
+    }
+
+    @if (isMiniProtocolModalVisible && selectedMiniProtocol != null)
+    {
+        <div class="modal">
+            <div class="modal-content">
+                <span class="close-button" @onclick="HideMiniProtocolModal">&times;</span>
+                <h3>@selectedMiniProtocol.Assunto</h3>
+                <p><strong>Número:</strong> @selectedMiniProtocol.Numero</p>
+                <p><strong>Descrição:</strong> @selectedMiniProtocol.Descricao</p>
+                <p><strong>Localização Atual:</strong> @selectedMiniProtocol.LocalizacaoAtual</p>
+                <p><strong>Último Movimento:</strong> @selectedMiniProtocol.DataUltimoMovimento @selectedMiniProtocol.HoraUltimoMovimento</p>
+                <button @onclick="() => AddToBlacklist(selectedMiniProtocol.Numero)">Não tenho interesse</button>
+            </div>
+        </div>
+    }
+    
+</div>
+
+@code {
+    [Parameter]
+    public List<MiniProtocolData> miniProtocolsList { get; set; } = new List<MiniProtocolData>();
+
+    [Parameter]
+    public List<ProtocolData> protocolsList { get; set; } = new List<ProtocolData>();
+
+     [Parameter]
+    public ByTimeColorConfig Config { get; set; }
+    
+    /*MODAL VARIABLES*/
+    private bool isProtocolModalVisible = false;
+    private bool isMiniProtocolModalVisible = false;
+    private MiniProtocolData? selectedMiniProtocol = null;
+    private ProtocolData? selectedProtocol = null;
+
+    // Lista negra para armazenar números de protocolos
+    private HashSet<string> blacklist = new HashSet<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBlacklistFromLocalStorage();
+    }
+
+    private async Task SaveBlacklistToLocalStorage()
+{
+    var json = JsonConvert.SerializeObject(blacklist); // Serializa a blacklist
+    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "blacklist", json); // Armazena no localStorage
+}
+
+    private async Task LoadBlacklistFromLocalStorage()
+{
+    var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "blacklist"); // Obtém o JSON do localStorage
+    if (!string.IsNullOrEmpty(json))
+    {
+        blacklist = JsonConvert.DeserializeObject<HashSet<string>>(json); // Desserializa a blacklist
+    }
+}
+
+  private void ShowProtocolModal(ProtocolData protocol)
+    {
+        selectedProtocol = protocol;
+        isProtocolModalVisible = true;
+        StateHasChanged(); 
+    }
+
+  private void HideProtocolModal()
+    {
+        isMiniProtocolModalVisible = false;
+        selectedProtocol = null;
+    }
+    
+  private void ShowMiniProtocolModal(MiniProtocolData miniProtocol)
+    {
+        selectedMiniProtocol = miniProtocol;
+        isMiniProtocolModalVisible = true;
+        StateHasChanged();
+    }
+    
+  private void HideMiniProtocolModal()
+    {
+        isMiniProtocolModalVisible = false;
+        selectedMiniProtocol = null;
+    }
+    
+   
+    private async Task AddToBlacklist(string numero)
+    {
+        blacklist.Add(numero); // Adiciona o número à lista negra
+        await SaveBlacklistToLocalStorage(); // Salva a blacklist no localStorage
+        HideProtocolModal();
+        HideMiniProtocolModal();// Oculta o modal após adicionar
+        StateHasChanged(); // Atualiza a interface
+    }
+
+    private bool IsInBlacklist(string numero)
+    {
+        return blacklist.Contains(numero); // Verifica se o número está na lista negra
+    }
+
+    private string GetColorClass(string dataUltimoMovimento)
+    {
+        if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
+        {
+            var daysDifference = (DateTime.Now - lastMoveDate).TotalDays;
+
+            if (daysDifference <= Config.ConfigVerde)
+            {
+                return Config.ColorVerde; // Cor configurada para "verde"
+            }
+            else if (daysDifference <= Config.ConfigAmarelo)
+            {
+                return Config.ColorAmarelo; // Cor configurada para "amarelo"
+            }
+            else if (daysDifference <= Config.ConfigVermelho)
+            {
+                return Config.ColorVermelho; // Cor configurada para "vermelho"
+            }
+            else
+            {
+                return Config.ColorPreto; // Cor configurada para "preto"
+            }
+        }
+        return string.Empty;
+    }
+}
+

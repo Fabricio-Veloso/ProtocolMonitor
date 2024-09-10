@@ -243,6 +243,14 @@ namespace MyBlazorPwa
     public List<Moves> Moves { get; set; }  = new List<Moves>();
     public ProtocolTrackingConfig trackingConfig { get; set; }  = new ProtocolTrackingConfig();
 
+    public string GetDataUltimoMovimento() {
+        if (Moves != null && Moves.Count > 0) {
+            // Retorna a data do último movimento
+            return Moves.Last().Data ?? "Sem data"; // Use uma string padrão se Data for nulo
+        }
+        return "Sem movimentos"; // Se não houver movimentos
+    }
+    
     // Construtor padrão
     public ProtocolData() { }
   }
