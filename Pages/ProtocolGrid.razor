@@ -167,7 +167,6 @@
         isMiniProtocolModalVisible = false;
         selectedMiniProtocol = null;
     }
-    
    
     private async Task AddToBlacklist(string numero)
     {
@@ -183,30 +182,103 @@
         return blacklist.Contains(numero); // Verifica se o número está na lista negra
     }
 
-    private string GetColorClass(string dataUltimoMovimento)
-    {
-        if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
-        {
-            var daysDifference = (DateTime.Now - lastMoveDate).TotalDays;
+  List<DateTime> feriados = new List<DateTime>
+{
+    new DateTime(2024, 1, 1),  // Ano Novo
+    new DateTime(2024, 2, 10), // Carnaval (sábado)
+    new DateTime(2024, 2, 12), // Carnaval (segunda-feira)
+    new DateTime(2024, 2, 13), // Carnaval (terça-feira)
+    new DateTime(2024, 2, 14), // Quarta-feira de Cinzas (quarta-feira)
+    new DateTime(2024, 3, 29), // Sexta-feira Santa
+    new DateTime(2024, 3, 31), // Páscoa (domingo)
+    new DateTime(2024, 4, 21), // Tiradentes
+    new DateTime(2024, 5, 1),  // Dia do Trabalho
+    new DateTime(2024, 5, 30), // Corpus Christi
+    new DateTime(2024, 9, 7),  // Independência do Brasil
+    new DateTime(2024, 10, 12),// Nossa Senhora Aparecida / Dia das Crianças
+    new DateTime(2024, 11, 2), // Finados
+    new DateTime(2024, 11, 15),// Proclamação da República
+    new DateTime(2024, 12, 25) // Natal
+};
+  
+  public int GetDiasUteis(DateTime startDate, DateTime endDate, List<DateTime> feriados)
+{
+    int diasUteis = 0;
 
-            if (daysDifference <= Config.ConfigVerde)
+    for (var date = startDate; date <= endDate; date = date.AddDays(1))
+    {
+        // Ignora finais de semana (sábado e domingo)
+        if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
+        {
+            // Ignora feriados
+            if (!feriados.Contains(date))
             {
-                return Config.ColorVerde; // Cor configurada para "verde"
-            }
-            else if (daysDifference <= Config.ConfigAmarelo)
-            {
-                return Config.ColorAmarelo; // Cor configurada para "amarelo"
-            }
-            else if (daysDifference <= Config.ConfigVermelho)
-            {
-                return Config.ColorVermelho; // Cor configurada para "vermelho"
-            }
-            else
-            {
-                return Config.ColorPreto; // Cor configurada para "preto"
+                diasUteis++;
             }
         }
-        return string.Empty;
     }
+
+    return diasUteis;
 }
+
+  private string GetColorClass(string dataUltimoMovimento)
+{
+    if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
+    {
+        // Data atual
+        var dataAtual = DateTime.Now;
+        
+        // Expectativa de movimentação
+        var expectativaMovimentacao = Config.ConfigExpectativaMovimentacao ?? 0;
+
+        // Lista de feriados 2024
+        List<DateTime> feriados = new List<DateTime>
+        {
+            new DateTime(2024, 1, 1), new DateTime(2024, 2, 12), new DateTime(2024, 2, 13), 
+            new DateTime(2024, 2, 14), new DateTime(2024, 3, 29), new DateTime(2024, 4, 21), 
+            new DateTime(2024, 5, 1), new DateTime(2024, 5, 30), new DateTime(2024, 9, 7), 
+            new DateTime(2024, 10, 12), new DateTime(2024, 11, 2), new DateTime(2024, 11, 15), 
+            new DateTime(2024, 12, 25)
+        };
+
+        // Calcula a diferença em dias úteis
+        var diasUteis = GetDiasUteis(lastMoveDate, dataAtual, feriados);
+
+        // Verifica se a diferença está dentro da expectativa
+        if (diasUteis <= expectativaMovimentacao)
+        {
+            return Config.ColorVerde; // Dentro do prazo, retorna verde
+        }
+        else
+        {
+            // Diferença acima da expectativa, inicia o cálculo
+            var sobra = diasUteis - expectativaMovimentacao;
+
+            if (sobra > 0)
+            {
+                // Subtrai a configuração amarelo
+                sobra -= Config.ConfigAmarelo ?? 0;
+
+                if (sobra > 0)
+                {
+                    // Subtrai a configuração vermelho
+                    sobra -= Config.ConfigVermelho ?? 0;
+
+                    if (sobra > 0)
+                    {
+                        return Config.ColorPreto; // Retorna preto se ainda sobrar
+                    }
+
+                    return Config.ColorVermelho; // Retorna vermelho se sobrar
+                }
+
+                return Config.ColorAmarelo; // Retorna amarelo se sobrar
+            }
+        }
+    }
+
+    return string.Empty; // Retorna vazio se a data não for válida
+}
+}
+
 

@@ -52,10 +52,7 @@ else if (isConnected && !hasConnectionMessageDisappeared)
             <label for="expectativa">Expectativa de tempo para movimentação (em dias):</label>
             <input type="number" id="expectativa" @bind="colorConfig.ConfigExpectativaMovimentacao" />
 
-            <label for="verde">Limite para verde (dias):</label>
-            <input type="number" id="verde" @bind="colorConfig.ConfigVerde" />
-
-            <label for="amarelo">Limite para laranja (dias):</label>
+            <label for="amarelo">Limite para amarelo (dias):</label>
             <input type="number" id="amarelo" @bind="colorConfig.ConfigAmarelo" />
 
             <label for="vermelho">Limite para vermelho (dias):</label>
@@ -83,6 +80,13 @@ else if (isConnected && !hasConnectionMessageDisappeared)
   </div>
 }
 
+<!--
+@if (miniprotocols.Any())
+{
+  // Chame um método para atualizar a lista quando a lista de mini protocolos não estiver vazia
+  await async UpdateProtocols();
+}
+-->
 
 <!--
 expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual 
@@ -125,6 +129,21 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   private ByTimeColorConfig colorConfig = new ByTimeColorConfig();
   
   private System.Timers.Timer timer; // Timer do sistema
+
+  private async Task UpdateProtocols()
+  {
+    // Verifica se miniprotocols é nulo ou está vazio
+    if (miniprotocols != null && miniprotocols.Any())
+    {
+      List<string> listaProtocolosPesquisar = miniprotocols.Select(mp => mp.Numero).ToList();
+      await UpdateGridWithFullProtocolsAsync(listaProtocolosPesquisar);
+    }
+    else
+    {
+      // Corrigido para usar Console.WriteLine
+      Console.WriteLine("Ocorreu um erro ao tentar listar os números dos mini protocolos");
+    }
+  }
 
   private async Task StartTimer()
 {
@@ -201,6 +220,49 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   StateHasChanged();
 }
 
+  private async Task UpdateGridWithFullProtocolsAsync(List<string> protocolList){
+    ProtocolRequestStatus = true;
+    isLoading = true;
+    receivedMessage = null;
+    StateHasChanged();
+
+    // Envia a lista de protocolos para o backend
+    await WebSocketService.SendAsync("UpdateGridWithFullProtocols " + string.Join(",", protocolList));
+
+    // Variável para controlar quantos protocolos foram processados
+    int processedProtocols = 0;
+    int totalProtocols = protocolList.Count;
+
+    // Continua recebendo mensagens até que todas as respostas tenham sido recebidas
+    while (processedProtocols < totalProtocols) {
+      receivedMessage = await WebSocketService.ReceiveAsync();
+
+      if (!string.IsNullOrEmpty(receivedMessage)) {
+            Console.WriteLine($"Dados do protocolo {processedProtocols + 1} de {totalProtocols} recebidos do backend Node");
+
+            // Cria uma nova instância de ProtocolData para cada novo protocolo recebido
+            var newProtocolInstance = new ProtocolData();
+            ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
+
+            // Verifica se o protocolo já existe antes de adicionar
+            if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
+                protocols.Add(newProtocolInstance);
+                await localStorage.SetItemAsync("protocols", protocols); // Salva a lista no Local Storage
+            }
+
+            // Atualiza a interface de usuário a cada nova mensagem recebida
+            StateHasChanged();
+
+            // Incrementa a quantidade de protocolos processados
+            processedProtocols++;
+        }
+    }
+
+    isLoading = false; // Certifique-se de que o estado de carregamento seja encerrado
+    ProtocolRequestStatus = false;
+    StateHasChanged();
+}
+  
   private async Task BySectorRequestMiniProtocolData(string sector) {
   ProtocolRequestStatus = true;
   isLoading = true;
@@ -276,6 +338,8 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     
     // Tentar conectar ao WebSocket automaticamente
     await TryConnectWebSocket();
+    
+    await UpdateProtocols();
     
   }
 }
