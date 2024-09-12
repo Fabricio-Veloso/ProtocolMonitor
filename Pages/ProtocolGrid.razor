@@ -122,18 +122,18 @@
     // Lista negra para armazenar números de protocolos
     private HashSet<string> blacklist = new HashSet<string>();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadBlacklistFromLocalStorage();
-    }
+  protected override async Task OnInitializedAsync()
+  {
+      await LoadBlacklistFromLocalStorage();
+  }
 
-    private async Task SaveBlacklistToLocalStorage()
+  private async Task SaveBlacklistToLocalStorage()
 {
-    var json = JsonConvert.SerializeObject(blacklist); // Serializa a blacklist
-    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "blacklist", json); // Armazena no localStorage
+  var json = JsonConvert.SerializeObject(blacklist); // Serializa a blacklist
+  await JSRuntime.InvokeVoidAsync("localStorage.setItem", "blacklist", json); // Armazena no localStorage
 }
 
-    private async Task LoadBlacklistFromLocalStorage()
+  private async Task LoadBlacklistFromLocalStorage()
 {
     var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "blacklist"); // Obtém o JSON do localStorage
     if (!string.IsNullOrEmpty(json))
@@ -168,16 +168,16 @@
         selectedMiniProtocol = null;
     }
    
-    private async Task AddToBlacklist(string numero)
-    {
-        blacklist.Add(numero); // Adiciona o número à lista negra
-        await SaveBlacklistToLocalStorage(); // Salva a blacklist no localStorage
-        HideProtocolModal();
-        HideMiniProtocolModal();// Oculta o modal após adicionar
-        StateHasChanged(); // Atualiza a interface
-    }
+  private async Task AddToBlacklist(string numero)
+  {
+      blacklist.Add(numero); // Adiciona o número à lista negra
+      await SaveBlacklistToLocalStorage(); // Salva a blacklist no localStorage
+      HideProtocolModal();
+      HideMiniProtocolModal();// Oculta o modal após adicionar
+      StateHasChanged(); // Atualiza a interface
+  }
 
-    private bool IsInBlacklist(string numero)
+  private bool IsInBlacklist(string numero)
     {
         return blacklist.Contains(numero); // Verifica se o número está na lista negra
     }

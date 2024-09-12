@@ -145,6 +145,69 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     }
   }
 
+  private async Task UpdateProtocolsMoves(List<ProtocolData> protocols, string lastMovesTime)
+  {
+      // Indica que a requisição de protocolos está ativa
+      ProtocolRequestStatus = true;
+      isLoading = true;
+      receivedMessage = null;
+      StateHasChanged();
+  
+      // Cria uma lista de números de protocolos a serem enviados
+      var protocolList = protocols.Select(p => p.Header.Numero).ToList();
+  
+      // Envia a lista de protocolos para o backend e aguarda a resposta que indica a quantidade de atualizações necessárias
+      await WebSocketService.SendAsync("UpdateGridWithFullProtocols " + string.Join(",", protocolList) + " " + lastMovesTime);
+      
+      // Aguarda a resposta do backend para saber quantos protocolos serão atualizados
+      string response = await WebSocketService.ReceiveAsync();
+      if (int.TryParse(response, out int totalProtocols) && totalProtocols > 0)
+      {
+          // Variável para controlar quantos protocolos foram processados
+          int processedProtocols = 0;
+  
+          // Continua recebendo mensagens até que todas as respostas tenham sido recebidas
+          while (processedProtocols < totalProtocols)
+          {
+              receivedMessage = await WebSocketService.ReceiveAsync();
+  
+              if (!string.IsNullOrEmpty(receivedMessage))
+              {
+                  Console.WriteLine($"Dados do protocolo {processedProtocols + 1} de {totalProtocols} recebidos do backend Node");
+  
+                  // Cria uma nova instância de ProtocolData para cada novo protocolo recebido
+                  var newProtocolInstance = new ProtocolData();
+                  ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
+  
+                  // Substitui o protocolo existente, se houver
+                  var existingProtocol = protocols.FirstOrDefault(p => p.Header.Numero == newProtocolInstance.Header.Numero);
+                  if (existingProtocol != null)
+                  {
+                      // Remove o protocolo antigo
+                      protocols.Remove(existingProtocol);
+                  }
+  
+                  // Adiciona o novo protocolo
+                  protocols.Add(newProtocolInstance);
+                  
+                  // Atualiza o Local Storage com a lista atualizada de protocolos
+                  await localStorage.SetItemAsync("protocols", protocols); // Salva a lista no Local Storage
+  
+                  // Atualiza a interface de usuário a cada nova mensagem recebida
+                  StateHasChanged();
+  
+                  // Incrementa a quantidade de protocolos processados
+                  processedProtocols++;
+              }
+          }
+      }
+  
+      // Certifique-se de que o estado de carregamento seja encerrado
+      isLoading = false;
+      ProtocolRequestStatus = false;
+      StateHasChanged();
+  }
+
   private async Task StartTimer()
 {
     while (timeRemaining.TotalSeconds > 0)
@@ -212,12 +275,33 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     // Verifique se o protocolo já existe antes de adicionar
     if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
       protocols.Add(newProtocolInstance);
+      AtualizarListaMiniProtocolos(ref protocols, ref miniprotocols);
+      StateHasChanged();
       await localStorage.SetItemAsync("protocols", protocols); // Salve a lista no Local Storage
     }
   }
 
   isLoading = false; // Certifique-se de que o estado de carregamento seja encerrado
   StateHasChanged();
+}
+
+  public void AtualizarListaMiniProtocolos(ref List<ProtocolData> listaProtocolos, ref List<MiniProtocolData> listaMiniProtocolos)
+{
+    // Para cada protocolo completo
+    foreach (var protocolo in listaProtocolos)
+    {
+        // Encontra o miniprotocolo correspondente, se existir
+        var miniProtocoloCorrespondente = listaMiniProtocolos
+            .FirstOrDefault(mini => mini.Numero == protocolo.Header.Numero);
+
+        // Se houver correspondência, remove o miniprotocolo
+        if (miniProtocoloCorrespondente != null)
+        {
+            listaMiniProtocolos.Remove(miniProtocoloCorrespondente);
+            AtualizarLocalStorage(listaMiniProtocolos);
+            StateHasChanged();
+        }
+    }
 }
 
   private async Task UpdateGridWithFullProtocolsAsync(List<string> protocolList){
@@ -247,6 +331,8 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
             // Verifica se o protocolo já existe antes de adicionar
             if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
                 protocols.Add(newProtocolInstance);
+                AtualizarListaMiniProtocolos(ref protocols, ref miniprotocols);
+                StateHasChanged();
                 await localStorage.SetItemAsync("protocols", protocols); // Salva a lista no Local Storage
             }
 
@@ -290,6 +376,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   }
 
   isLoading = false; // Certifique-se de que o estado de carregamento seja encerrado
+  await UpdateProtocols();
   StateHasChanged();
 }
 
@@ -342,4 +429,9 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     await UpdateProtocols();
     
   }
+
+private async Task AtualizarLocalStorage(List<MiniProtocolData> listaMiniProtocolos){
+  await localStorage.SetItemAsync("miniprotocols", miniprotocols); 
+}
+
 }
