@@ -9,7 +9,7 @@
         {
             <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))" @onclick="() => ShowProtocolModal(protocol)">
                 <div class="content">
-                    <p class="description">@protocol.Header.Descricao</p>
+                    <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
                 </div>
             </div>
         }
@@ -26,7 +26,8 @@
         {
             <div class="miniprotocol-card @(GetColorClass(miniProtocol.DataUltimoMovimento))" @onclick="() => ShowMiniProtocolModal(miniProtocol)">
                 <div class="content">
-                    <p class="description">@miniProtocol.Descricao</p>
+                    <div class="loader"></div>
+                    <p class="description">@TruncateDescription(miniProtocol.Descricao)</p>
                 </div>
             </div>
         }
@@ -121,6 +122,15 @@
 
     // Lista negra para armazenar números de protocolos
     private HashSet<string> blacklist = new HashSet<string>();
+
+  private string TruncateDescription(string description)
+    {
+        if (description.Length > 40)
+        {
+            return description.Substring(0, 40) + "..."; // Limita a 40 caracteres e adiciona "..."
+        }
+        return description;
+    }
 
   protected override async Task OnInitializedAsync()
   {

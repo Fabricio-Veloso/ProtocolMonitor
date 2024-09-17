@@ -116,10 +116,12 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   private MiniProtocolData miniProtocolInstance = new MiniProtocolData();
   private List<MiniProtocolData> miniprotocols = new List<MiniProtocolData>();
   
-  private TimeSpan timeRemaining = TimeSpan.FromMinutes(0.1); // Timer inicial de 5 minutos
+  private TimeSpan timeRemaining = TimeSpan.FromMinutes(5); // Timer inicial de 5 minutos
   private string? selectedSector; // Setor selecionado
   private bool isConfigModalVisible = false;
   private bool startCheck = false;
+  
+  private bool isUpdating = false;
   
   // Nova instância da classe ByTimeColorConfig
   private ByTimeColorConfig colorConfig = new ByTimeColorConfig();
@@ -144,6 +146,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   private async Task  UpdateProtocolsMoves(List<ProtocolData> protocols)
   {
     // Indica que a requisição de protocolos está ativa
+    isUpdating = true;
     ProtocolRequestStatus = true;
     isLoading = true;
     receivedMessage = null;
@@ -210,10 +213,11 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     }
   
     // Certifique-se de que o estado de carregamento seja encerrado
-    await StartTimer();
+    
     isLoading = false;
     ProtocolRequestStatus = false;
     StateHasChanged();
+    isUpdating = false;
   }
 
   private async Task StartTimer()
@@ -224,13 +228,21 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
       timeRemaining = timeRemaining.Subtract(TimeSpan.FromSeconds(1));
       StateHasChanged();
     }
-  
-    // Quando o tempo acabar, realize a pesquisa de mini protocolos
-    await UpdateProtocolsMoves(protocols);
+    
+    if(isUpdating == false && isLoading == false){
+     // Quando o tempo acabar, realize a pesquisa de mini protocolos
+      await UpdateProtocolsMoves(protocols);
+    }else{
+      Console.WriteLine("Os protoclos estão sendo atualizados, não realizar aa tualização periódica agora");
+      
+    }
+   
     
     // Reinicie o timer para 5 minutos
-    timeRemaining = TimeSpan.FromMinutes(0.1);
+    timeRemaining = TimeSpan.FromMinutes(5);
     StateHasChanged();
+    StartTimer();
+    Console.WriteLine("Timer iniciado novamente");
   }
 
   private void OnSectorChange(string sector)
@@ -356,7 +368,10 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     ProtocolRequestStatus = false;
     StateHasChanged();
     Console.WriteLine("Todos os MiniProtocolos foram subistituídos por Protocolos completos, iniciando Timer para atualizações periódicas");
-    StartTimer();
+    if(isUpdating == false){
+    await StartTimer();
+    }
+    
   }
   
   private async Task BySectorRequestMiniProtocolData(string sector) {
@@ -416,6 +431,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   }
 
   protected override async Task OnInitializedAsync() {
+    
     var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
     if(savedProtocols != null){
       protocols = savedProtocols;
@@ -429,14 +445,19 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     var savedConfig = await localStorage.GetItemAsync<ByTimeColorConfig>("colorConfig");
     if (savedConfig != null)
     {
-        colorConfig = savedConfig;
-        expectativaMovimentacao = DateTime.Now.AddDays(colorConfig.ConfigExpectativaMovimentacao ?? 0);
+      colorConfig = savedConfig;
+      expectativaMovimentacao = DateTime.Now.AddDays(colorConfig.ConfigExpectativaMovimentacao ?? 0);
     }
     
-    // Tentar conectar ao WebSocket automaticamente
     await TryConnectWebSocket();
     
+    // Tentar conectar ao WebSocket automaticamente
     await UpdateProtocols();
+    
+    StartTimer();
+    
+    
+    
     
   }
 
@@ -444,34 +465,5 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   await localStorage.SetItemAsync("miniprotocols", miniprotocols); 
   }
 
-  private async Task StartPeriodicProtocolsUpdate(int minutes){
-    
-    // Converte minutos em milissegundos (1 minuto = 60.000 milissegundos)
-    int delayTime = minutes * 60 * 1000;
-
-    Console.WriteLine($"Timer iniciado por {minutes} minutos...");
-
-    // Inicia o timer assíncrono
-    await Task.Delay(delayTime);
-
-    // Quando o timer terminar, execute o que for necessário
-    Console.WriteLine($"Timer finalizado após {minutes} minutos.");
-    
-    await UpdateProtocolsMoves(protocols);
-
-    /*
-    // Verifica a condição
-    if (condition())
-    {
-      Console.WriteLine("A condição foi atendida, reiniciando o timer...");
-      // Chama o timer novamente
-      await StartPeriodicProtocolsUpdate(minutes, condition);
-    }
-    else
-    {
-      Console.WriteLine("A condição não foi atendida, o timer não será reiniciado.");
-    }
-    */
-  }
 
 }
