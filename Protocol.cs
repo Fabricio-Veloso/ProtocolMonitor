@@ -224,7 +224,7 @@ namespace MyBlazorPwa
   }
   
   public class MiniProtocolData
-{
+  {
     public string? DataUltimoMovimento { get; set; } = "Vazio";
     public string? HoraUltimoMovimento { get; set; } = "Vazio";
     public string? LocalizacaoAtual    { get; set; } = "Vazio";
@@ -236,7 +236,7 @@ namespace MyBlazorPwa
 
     // Remova a propriedade recursiva ou modifique conforme necessário
     // public MiniProtocolData miniProtocolData { get; set; } = new MiniProtocolData();
-}
+  }
 
   public class ProtocolData{
     public Header Header { get; set; } = new Header();
@@ -249,6 +249,13 @@ namespace MyBlazorPwa
             return Moves.Last().Data ?? "Sem data"; // Use uma string padrão se Data for nulo
         }
         return "Sem movimentos"; // Se não houver movimentos
+    }
+    
+    public string GetSetorUltimoMovimento() {
+      if (Moves != null && Moves.Count > 0) {
+          return Moves.Last().SetorDestino ?? "Sem setor"; // Retorna o setor do último movimento
+      }
+        return "Sem movimentações"; // Se não houver movimentos
     }
     
     // Construtor padrão

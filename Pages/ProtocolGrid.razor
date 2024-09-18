@@ -2,92 +2,148 @@
 @inject IJSRuntime JSRuntime
 
 <div class="miniprotocol-grid">
-    
-     @if (protocolsList != null && protocolsList.Any())
+  <div> 
+    <button class="button" @onclick="() => FilterByDate()">Filtrar por Data</button>
+    @foreach (var phase in phases)
     {
-        @foreach (var protocol in protocolsList)
-        {
-            <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))" @onclick="() => ShowProtocolModal(protocol)">
-                <div class="content">
-                    <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
-                </div>
-            </div>
-        }
-    }
-    else
-    {
-        <p>Nenhum protocolo encontrado.</p>
+      var displayPhase = phase.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS - CREA-PE - 0", "").Trim();
+      <button class="button" @onclick="() => FilterByPhase(phase)">Filtrar por @displayPhase</button>
     }
 
-    <!-- mostra os mini protocolos -->
-    @if (miniProtocolsList != null && miniProtocolsList.Any())
-    {
-        @foreach (var miniProtocol in miniProtocolsList.Where(p => !IsInBlacklist(p.Numero)))
-        {
-            <div class="miniprotocol-card @(GetColorClass(miniProtocol.DataUltimoMovimento))" @onclick="() => ShowMiniProtocolModal(miniProtocol)">
-                <div class="content">
-                    <div class="loader"></div>
-                    <p class="description">@TruncateDescription(miniProtocol.Descricao)</p>
-                </div>
-            </div>
-        }
-    }else
-    {
-        <p>Nenhum Mini-protocolo encontrado.</p>
-    }
     
-    <!-- Modal do protocolo completo -->
-    @if (isProtocolModalVisible && selectedProtocol != null)
+    <button class="button" @onclick="ShowAdoptedProtocols">Mostrar Protocolos Adotados</button>
+    <button class="button" @onclick="ShowAllProtocols">Mostrar Todos os Protocolos</button>
+  </div> 
+  @if (currentFilter == FilterMode.ByDate && filteredByDate != null && filteredByDate.Any())
+  {
+      @foreach (var protocol in filteredByDate)
+      {
+          <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+               title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+               @onclick="() => ShowProtocolModal(protocol)">
+               <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
+              <div class="content">
+                  <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+              </div>
+          </div>
+      }
+  }
+  
+  @if (currentFilter == FilterMode.ByPhase && filteredByPhase.Any())
+  {
+      foreach (var phase in filteredByPhase)
+      {
+          foreach (var protocol in phase.Value)
+          {
+              <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+                   title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+                   @onclick="() => ShowProtocolModal(protocol)">
+                   <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
+                  <div class="content">
+                      <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+                  </div>
+              </div>
+          }
+      }
+  }
+ 
+  @if (currentFilter == FilterMode.Adopted && adoptedProtocols != null && adoptedProtocols.Any())
+  {
+      foreach (var protocol in adoptedProtocols)
+      {
+          <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+               title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+               @onclick="() => ShowProtocolModal(protocol)">
+               <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
+              <div class="content">
+                  <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+              </div>
+          </div>
+      }
+  }
+ 
+  @if( currentFilter == FilterMode.None && protocolsList != null && protocolsList.Any())
+  {
+    foreach (var protocol in protocolsList)
     {
-        <div class="modal">
-            <div class="modal-content">
-                <span class="close-button" @onclick="HideProtocolModal">&times;</span>
-                <h3>Protocolo: @selectedProtocol.Header?.Numero</h3>
-                    <p><strong>Interessado:</strong> @selectedProtocol.Header?.Interessado</p>
-                    <p><strong>Solicitante:</strong> @selectedProtocol.Header?.Solicitante</p>
-                    <p><strong>Inspetoria:</strong> @selectedProtocol.Header?.Inspetoria</p>
-                    <p><strong>Assunto:</strong> @selectedProtocol.Header?.Assunto</p>
-                    <p><strong>Origem:</strong> @selectedProtocol.Header?.Origem</p>
-                    <p><strong>Situação:</strong> @selectedProtocol.Header?.Situacao</p>
-                    <p><strong>Destino:</strong> @selectedProtocol.Header?.Destino</p>
-                    <p><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso?</p>
-                    <p><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao?</p>
-                    <p><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</p>
-                    <button @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Não tenho interesse</button>
-
-                    <h4>Movimentações:</h4>
-                    @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
-                    {
-                        @foreach (var move in selectedProtocol.Moves)
-                        {
-                          <div class="move-container">
-                              <div class="move-card">
-                                  <p><strong>Passo:</strong> @move.Passo</p>
-                                  <p><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</p>
-                                  <p><strong>Usuário de Destino:</strong> @move.UsuarioDestino</p>
-                                  <p><strong>Setor de Origem:</strong> @move.SetorOrigem</p>
-                                  <p><strong>Setor de Destino:</strong> @move.SetorDestino</p>
-                                  <p><strong>Descrição:</strong> @move.Descricao</p>
-                                  <p><strong>Data:</strong> @move.Data?</p>
-                                  <p><strong>Hora:</strong> @move.Hora?</p>
-                                  <p><strong>Sigiloso:</strong> @move.Sigiloso?</p>
-                              </div>
-                              @if (move != selectedProtocol.Moves.Last())
-                              {
-                                  <div class="move-separator"></div>
-                              }
-                          </div>
-                        }
-                    }
-                    else
-                    {
-                        <p>Nenhuma movimentação encontrada.</p>
-                    }
+      <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+         title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+         @onclick="() => ShowProtocolModal(protocol)">
+         <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
+        <div class="content">
+            <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+        </div>
+      </div>
+    }
+  }
+  
+  @if (miniProtocolsList != null && miniProtocolsList.Any())
+{
+    foreach (var miniProtocol in miniProtocolsList.Where(p => !IsInBlacklist(p.Numero)))
+    {
+        <div class="miniprotocol-card @(GetColorClass(miniProtocol.DataUltimoMovimento))"
+             title="Descrição: @miniProtocol.Descricao | Atualmente em: @miniProtocol.LocalizacaoAtual"
+             @onclick="() => ShowMiniProtocolModal(miniProtocol)">
+            <div class="content">
+                <div class="loader"></div>
+                <p class="description">@TruncateDescription(miniProtocol.Descricao)</p>
             </div>
         </div>
     }
+}
 
-    @if (isMiniProtocolModalVisible && selectedMiniProtocol != null)
+  <!-- Modal do protocolo completo -->
+  @if (isProtocolModalVisible && selectedProtocol != null)
+  {
+      <div class="modal">
+          <div class="modal-content">
+              <span class="close-button" @onclick="HideProtocolModal">&times;</span>
+              <h3>Protocolo: @selectedProtocol.Header?.Numero</h3>
+                  <p><strong>Interessado:</strong> @selectedProtocol.Header?.Interessado</p>
+                  <p><strong>Solicitante:</strong> @selectedProtocol.Header?.Solicitante</p>
+                  <p><strong>Inspetoria:</strong> @selectedProtocol.Header?.Inspetoria</p>
+                  <p><strong>Assunto:</strong> @selectedProtocol.Header?.Assunto</p>
+                  <p><strong>Origem:</strong> @selectedProtocol.Header?.Origem</p>
+                  <p><strong>Situação:</strong> @selectedProtocol.Header?.Situacao</p>
+                  <p><strong>Destino:</strong> @selectedProtocol.Header?.Destino</p>
+                  <p><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso?</p>
+                  <p><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao?</p>
+                  <p><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</p>
+                  <button @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Não tenho interesse</button>
+
+                  <h4>Movimentações:</h4>
+                  @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
+                  {
+                      @foreach (var move in selectedProtocol.Moves)
+                      {
+                        <div class="move-container">
+                            <div class="move-card">
+                                <p><strong>Passo:</strong> @move.Passo</p>
+                                <p><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</p>
+                                <p><strong>Usuário de Destino:</strong> @move.UsuarioDestino</p>
+                                <p><strong>Setor de Origem:</strong> @move.SetorOrigem</p>
+                                <p><strong>Setor de Destino:</strong> @move.SetorDestino</p>
+                                <p><strong>Descrição:</strong> @move.Descricao</p>
+                                <p><strong>Data:</strong> @move.Data?</p>
+                                <p><strong>Hora:</strong> @move.Hora?</p>
+                                <p><strong>Sigiloso:</strong> @move.Sigiloso?</p>
+                            </div>
+                            @if (move != selectedProtocol.Moves.Last())
+                            {
+                                <div class="move-separator"></div>
+                            }
+                        </div>
+                      }
+                  }
+                  else
+                  {
+                      <p>Nenhuma movimentação encontrada.</p>
+                  }
+          </div>
+      </div>
+  }
+
+  @if (isMiniProtocolModalVisible && selectedMiniProtocol != null)
     {
         <div class="modal">
             <div class="modal-content">
@@ -111,9 +167,9 @@
     [Parameter]
     public List<ProtocolData> protocolsList { get; set; } = new List<ProtocolData>();
 
-     [Parameter]
+    [Parameter]
     public ByTimeColorConfig Config { get; set; }
-    
+
     /*MODAL VARIABLES*/
     private bool isProtocolModalVisible = false;
     private bool isMiniProtocolModalVisible = false;
@@ -123,6 +179,90 @@
     // Lista negra para armazenar números de protocolos
     private HashSet<string> blacklist = new HashSet<string>();
 
+    /*FILTERS*/
+    private DateTime? selectedDate; // Para filtro por data
+    private string? selectedPhase; // Para filtro por fase
+    private List<string> phases = new List<string>
+    {
+        "01 - SOLICITAÇÃO DE CONTRATAÇÃO",
+        "02 - PLANEJAMENTO DE CONTRATAÇÃO",
+        "03 - CONTRATAÇÃO DIRETA",
+        "04 - LICITAÇÃO",
+        "05 - EXECUÇÃO",
+        "06 - ADITIVO DE CONTRATO"
+    };
+
+    private enum FilterMode
+    {
+      None,
+      ByDate,
+      ByPhase,
+      Adopted
+    }
+
+    private FilterMode currentFilter = FilterMode.None;
+
+    private IEnumerable<ProtocolData>? filteredByDate;
+    private Dictionary<string, IEnumerable<ProtocolData>> filteredByPhase = new Dictionary<string, IEnumerable<ProtocolData>>();
+    private IEnumerable<ProtocolData>? adoptedProtocols;
+
+    private void FilterByDate()
+    {
+        currentFilter = FilterMode.ByDate;
+        filteredByDate = protocolsList
+            .OrderBy(p => DateTime.Parse(p.GetDataUltimoMovimento()).Date) // Ordena pela data do último movimento
+            .ToList(); // Converte para uma lista se necessário
+        StateHasChanged(); // Atualiza a interface
+    }
+
+
+    private void FilterByPhase(string selectedPhase)
+    {
+      currentFilter = FilterMode.ByPhase;
+      
+      filteredByPhase = protocolsList
+          .Where(p => p.Header.Assunto == selectedPhase)
+          .GroupBy(p => p.Header.Assunto ?? "Unknown") // Use "Unknown" ou outro valor padrão se Assunto for nulo
+          .ToDictionary(g => g.Key!, g => g.AsEnumerable()); // Use o operador de não nulidade (!) para garantir que a chave não seja nula
+      
+      StateHasChanged();
+    }
+
+    private void ShowAdoptedProtocols()
+    {
+        currentFilter = FilterMode.Adopted;
+        adoptedProtocols = protocolsList
+            .Where(p => blacklist.Contains(p.Header.Numero))
+            .ToList();
+    }
+
+    private void ShowAllProtocols()
+    {
+        currentFilter = FilterMode.None;
+        filteredByDate = null;
+        filteredByPhase.Clear();
+        adoptedProtocols = null;
+        StateHasChanged();
+    }
+    
+    public string GetPhaseClass(string assunto)
+    {
+      if (phases.Contains(assunto))
+      {
+        return assunto switch
+        {
+          "01 - SOLICITAÇÃO DE CONTRATAÇÃO" => "phase-solicitacao",
+          "02 - PLANEJAMENTO DE CONTRATAÇÃO" => "phase-planejamento",
+          "03 - CONTRATAÇÃO DIRETA" => "phase-contratacao",
+          "04 - LICITAÇÃO" => "phase-licitacao",
+          "05 - EXECUÇÃO" => "phase-execucao",
+          "06 - ADITIVO DE CONTRATO" => "phase-aditivo",
+          _ => "phase-default"
+        };
+      }
+      return "phase-default";
+    }
+  /*FILTERS*/
   private string TruncateDescription(string description)
     {
         if (description.Length > 40)

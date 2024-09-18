@@ -251,6 +251,7 @@ display: block;
 }
 
 .protocol-card {
+  position: relative;
   display: flex; 
   justify-content: center; 
   align-items: center; 
@@ -269,10 +270,31 @@ display: block;
   box-sizing: border-box; /* Inclui o padding nas dimensões totais */
 }
 
+.phase-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px; /* Largura da etiqueta */
+  height: 10%; /* Altura total do cartão */
+  border-top-left-radius: 10px; /* Bordas arredondadas */
+  border-bottom-left-radius: 10px; /* Bordas arredondadas */
+  border-radius: 50%; /* Faz com que a div seja um círculo */
+}
+
+.phase-solicitacao { background-color: #ffffff; } /* Cor para Solicitação */
+.phase-planejamento { background-color: #0014c4; } /* Cor para Planejamento */
+.phase-contratacao { background-color: #ba00df; } /* Cor para Contratação */
+.phase-licitacao { background-color: #dd009b; } /* Cor para Licitação */
+.phase-execucao { background-color: #818181; } /* Cor para Execução */
+.phase-aditivo { background-color: #7d9900; } /* Cor para Aditivo */
+.phase-default { background-color: #6c717d; } /* Cor padrão se não corresponder */
+
 .protocol-card:hover {
   transform: scale(1.05); /* Aumento ao passar o mouse */
   background-color: rgba(255, 255, 255, 0.1); /* Efeito de destaque */
 }
+
+
 
 /* Description */
 .description {
@@ -336,6 +358,7 @@ display: block;
 .button {
   padding: 10px 15px; /* Espaçamento interno */
   font-size: 16px; /* Tamanho da fonte */
+  margin: 5px;
   background-color: #007BFF; /* Cor de fundo azul */
   color: white; /* Cor do texto */
   border: none; /* Remove a borda padrão */
