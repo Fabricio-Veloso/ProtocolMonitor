@@ -21,7 +21,7 @@ box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
-  padding-top: 1.1rem;
+  
   text-transform: lowercase;
 }
 
@@ -196,7 +196,7 @@ display: block;
   justify-content: space-around; 
   padding: 10px;
   background-color: #4A89D3; 
-  height: calc(100vh - 20px); 
+  height: calc(100vh - 90px); 
   overflow-y: hidden; 
 }
 
@@ -207,7 +207,7 @@ display: block;
   flex-direction: column; 
   width: 120px; 
   height: 120px; 
-  margin: 10px; 
+  margin: 5px; 
   border-radius: 10px; 
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
   cursor: pointer;
@@ -215,7 +215,7 @@ display: block;
   color: white; 
   font-size: 0.9rem; 
   overflow: hidden; 
-  padding: 10px; /* Aumenta o padding do cartão */
+  padding: 5px; /* Aumenta o padding do cartão */
   box-sizing: border-box; /* Inclui o padding nas dimensões totais */
   position: relative;
 }
@@ -253,12 +253,12 @@ display: block;
 .protocol-card {
   position: relative;
   display: flex; 
-  justify-content: center; 
+  justify-content: top; 
   align-items: center; 
   flex-direction: column; 
   width: 120px; 
   height: 120px; 
-  margin: 10px; 
+  margin: 5px; 
   border-radius: 10px; 
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
   cursor: pointer;
@@ -301,10 +301,10 @@ display: block;
   text-align: center; 
   width: 100%; 
   height: auto; /* Permite que a altura seja ajustada */
-  max-height: 90%; /* Define uma altura máxima para a descrição */
-  max-width: 90%;
-  margin: 0; 
-  padding: 2px; /* Padding do texto */
+  max-height: 100%; /* Define uma altura máxima para a descrição */
+  max-width: 100%;
+  margin: 2; 
+  padding: 5px; /* Padding do texto */
   box-sizing: border-box; /* Inclui o padding nas dimensões totais */
   overflow: hidden; /* Esconde o texto que ultrapassa a altura máxima */
 }

@@ -134,13 +134,20 @@ namespace MyBlazorPwa
                         protocolData.Header.Solicitante = value;
                         break;
                     case "Descrição":
-                      // Remove o texto "PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS" se existir
-                      if (value.Contains("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS"))
+                      // Remove ou substitui o texto "PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS" conforme as condições
+                      if (value == "PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS")
                       {
+                          // Substitui a descrição inteira por "Protocolo Sem descrição"
+                          value = "Protocolo Sem descrição";
+                      }
+                      else if (value.Contains("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS"))
+                      {
+                          // Remove apenas "PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS" e mantém o restante do texto
                           value = value.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS", "").Trim();
                       }
                       protocolData.Header.Descricao = value;
                       break;
+
 
                     case "Interessado(s)":
                         protocolData.Header.Interessado = value;

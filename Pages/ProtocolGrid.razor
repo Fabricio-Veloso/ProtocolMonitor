@@ -10,8 +10,7 @@
       <button class="button" @onclick="() => FilterByPhase(phase)">Filtrar por @displayPhase</button>
     }
 
-    
-    <button class="button" @onclick="ShowAdoptedProtocols">Mostrar Protocolos Adotados</button>
+    <button class="button" @onclick="ShowAdoptedProtocols">Mostrar Protocolos sob sua responsabilidade</button>
     <button class="button" @onclick="ShowAllProtocols">Mostrar Todos os Protocolos</button>
   </div> 
   @if (currentFilter == FilterMode.ByDate && filteredByDate != null && filteredByDate.Any())
@@ -109,8 +108,17 @@
                   <p><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso?</p>
                   <p><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao?</p>
                   <p><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</p>
-                  <button @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Não tenho interesse</button>
-
+                  <div>
+                    <button class="button"  @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Apagar protocolo</button>
+                    @if (IsAdopted(selectedProtocol.Header.Numero))
+                    {
+                        <button class="button" @onclick="() => RemoveFromAdoptedProtocols(selectedProtocol.Header.Numero)">Retirar da lista de protocolos sob sua responsabilidade</button>
+                    }
+                    else
+                    {
+                        <button class="button" @onclick="() => AddToAdoptedProtocols(selectedProtocol.Header.Numero)">Adotar</button>
+                    }
+                  </div>
                   <h4>Movimentações:</h4>
                   @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
                   {
@@ -153,7 +161,7 @@
                 <p><strong>Descrição:</strong> @selectedMiniProtocol.Descricao</p>
                 <p><strong>Localização Atual:</strong> @selectedMiniProtocol.LocalizacaoAtual</p>
                 <p><strong>Último Movimento:</strong> @selectedMiniProtocol.DataUltimoMovimento @selectedMiniProtocol.HoraUltimoMovimento</p>
-                <button @onclick="() => AddToBlacklist(selectedMiniProtocol.Numero)">Não tenho interesse</button>
+                <button class="button" @onclick="() => AddToBlacklist(selectedMiniProtocol.Numero)">Não tenho interesse</button>
             </div>
         </div>
     }
@@ -201,11 +209,63 @@
     }
 
     private FilterMode currentFilter = FilterMode.None;
-
     private IEnumerable<ProtocolData>? filteredByDate;
     private Dictionary<string, IEnumerable<ProtocolData>> filteredByPhase = new Dictionary<string, IEnumerable<ProtocolData>>();
     private IEnumerable<ProtocolData>? adoptedProtocols;
+    private HashSet<string> adoptedProtocolsList = new HashSet<string>();
 
+    private async Task AddToAdoptedProtocols(string numero)
+    {
+        if (!adoptedProtocolsList.Contains(numero))
+        {
+            adoptedProtocolsList.Add(numero); // Adiciona o protocolo à lista
+            await SaveAdoptedProtocolsToLocalStorage(); // Salva no LocalStorage
+            Console.WriteLine($"Protocolo {numero} foi adotado com sucesso!");
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine($"Protocolo {numero} já foi adotado.");
+        }
+    }
+    
+    private async Task SaveAdoptedProtocolsToLocalStorage()
+    {
+        var json = JsonConvert.SerializeObject(adoptedProtocolsList); // Serializa a lista de adotados
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "adoptedProtocols", json); // Armazena no LocalStorage
+    }
+    
+    private async Task RemoveFromAdoptedProtocols(string numero)
+    {
+      if (adoptedProtocolsList.Contains(numero))
+      {
+        adoptedProtocolsList.Remove(numero); // Remove o protocolo da lista
+        await SaveAdoptedProtocolsToLocalStorage(); // Atualiza o LocalStorage
+        Console.WriteLine($"Você retirou o protocolo de número {numero} de sua lista de responsabilidades");
+        HideProtocolModal();
+        ShowAdoptedProtocols();
+        StateHasChanged();
+      }
+      else
+      {
+        Console.WriteLine($"Protocolo {numero} não está na lista de responsabilidade.");
+      }
+    }
+    
+    private async Task LoadAdoptedProtocolsFromLocalStorage()
+    {
+        var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "adoptedProtocols"); // Obtém o JSON do LocalStorage
+        if (!string.IsNullOrEmpty(json))
+        {
+            adoptedProtocolsList = JsonConvert.DeserializeObject<HashSet<string>>(json); // Desserializa a lista de adotados
+        }
+    }
+    
+    private bool IsAdopted(string numero)
+    {
+        return adoptedProtocolsList.Contains(numero);
+    }
+    
     private void FilterByDate()
     {
         currentFilter = FilterMode.ByDate;
@@ -214,7 +274,6 @@
             .ToList(); // Converte para uma lista se necessário
         StateHasChanged(); // Atualiza a interface
     }
-
 
     private void FilterByPhase(string selectedPhase)
     {
@@ -231,9 +290,14 @@
     private void ShowAdoptedProtocols()
     {
         currentFilter = FilterMode.Adopted;
+    
+        // Filtra os protocolos adotados usando a lista de números de protocolos adotados
         adoptedProtocols = protocolsList
-            .Where(p => blacklist.Contains(p.Header.Numero))
+            .Where(p => adoptedProtocolsList.Contains(p.Header.Numero))
             .ToList();
+    
+        // Atualiza a interface
+        StateHasChanged();
     }
 
     private void ShowAllProtocols()
@@ -275,22 +339,9 @@
   protected override async Task OnInitializedAsync()
   {
       await LoadBlacklistFromLocalStorage();
+      
+      await LoadAdoptedProtocolsFromLocalStorage();
   }
-
-  private async Task SaveBlacklistToLocalStorage()
-{
-  var json = JsonConvert.SerializeObject(blacklist); // Serializa a blacklist
-  await JSRuntime.InvokeVoidAsync("localStorage.setItem", "blacklist", json); // Armazena no localStorage
-}
-
-  private async Task LoadBlacklistFromLocalStorage()
-{
-    var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "blacklist"); // Obtém o JSON do localStorage
-    if (!string.IsNullOrEmpty(json))
-    {
-        blacklist = JsonConvert.DeserializeObject<HashSet<string>>(json); // Desserializa a blacklist
-    }
-}
 
   private void ShowProtocolModal(ProtocolData protocol)
     {
@@ -320,17 +371,32 @@
    
   private async Task AddToBlacklist(string numero)
   {
-      blacklist.Add(numero); // Adiciona o número à lista negra
-      await SaveBlacklistToLocalStorage(); // Salva a blacklist no localStorage
-      HideProtocolModal();
-      HideMiniProtocolModal();// Oculta o modal após adicionar
-      StateHasChanged(); // Atualiza a interface
+    blacklist.Add(numero); // Adiciona o número à lista negra
+    await SaveBlacklistToLocalStorage(); // Salva a blacklist no localStorage
+    HideProtocolModal();
+    HideMiniProtocolModal();// Oculta o modal após adicionar
+    StateHasChanged(); // Atualiza a interface
   }
 
   private bool IsInBlacklist(string numero)
     {
         return blacklist.Contains(numero); // Verifica se o número está na lista negra
     }
+
+  private async Task SaveBlacklistToLocalStorage()
+{
+  var json = JsonConvert.SerializeObject(blacklist); // Serializa a blacklist
+  await JSRuntime.InvokeVoidAsync("localStorage.setItem", "blacklist", json); // Armazena no localStorage
+}
+
+  private async Task LoadBlacklistFromLocalStorage()
+{
+    var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "blacklist"); // Obtém o JSON do localStorage
+    if (!string.IsNullOrEmpty(json))
+    {
+        blacklist = JsonConvert.DeserializeObject<HashSet<string>>(json); // Desserializa a blacklist
+    }
+}
 
   List<DateTime> feriados = new List<DateTime>
 {
