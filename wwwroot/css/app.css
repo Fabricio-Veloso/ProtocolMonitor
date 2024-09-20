@@ -274,16 +274,16 @@ display: block;
   position: absolute;
   top: 0;
   left: 0;
-  width: 12px; /* Largura da etiqueta */
-  height: 10%; /* Altura total do cartão */
+  width: 20px; /* Largura da etiqueta */
+  height: 20%; /* Altura total do cartão */
   border-top-left-radius: 10px; /* Bordas arredondadas */
   border-bottom-left-radius: 10px; /* Bordas arredondadas */
   border-radius: 50%; /* Faz com que a div seja um círculo */
 }
 
-.phase-solicitacao { background-color: #ffffff; } /* Cor para Solicitação */
+.phase-solicitacao { background-color: #ffffffbe; } /* Cor para Solicitação */
 .phase-planejamento { background-color: #0014c4; } /* Cor para Planejamento */
-.phase-contratacao { background-color: #ba00df; } /* Cor para Contratação */
+.phase-contratacao { background-color: #680091; } /* Cor para Contratação */
 .phase-licitacao { background-color: #dd009b; } /* Cor para Licitação */
 .phase-execucao { background-color: #818181; } /* Cor para Execução */
 .phase-aditivo { background-color: #7d9900; } /* Cor para Aditivo */
@@ -359,13 +359,19 @@ display: block;
   padding: 10px 15px; /* Espaçamento interno */
   font-size: 16px; /* Tamanho da fonte */
   margin: 5px;
-  background-color: #007BFF; /* Cor de fundo azul */
+  background-color: #080036; /* Cor de fundo azul */
   color: white; /* Cor do texto */
   border: none; /* Remove a borda padrão */
   border-radius: 4px; /* Bordas arredondadas */
   cursor: pointer; /* Muda o cursor ao passar sobre o botão */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra sutil */
   transition: background-color 0.3s, transform 0.3s; /* Transição suave */
+}
+
+.active-button {
+  border: 2px solid #ff0000; /* Exemplo: uma borda vermelha para destacar o botão ativo */
+  transform: scale(1.1); /* Exemplo: ligeiro aumento do tamanho do botão ativo */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra mais forte no botão ativo */
 }
 
 .button:hover {

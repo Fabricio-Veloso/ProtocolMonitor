@@ -3,15 +3,37 @@
 
 <div class="miniprotocol-grid">
   <div> 
-    <button class="button" @onclick="() => FilterByDate()">Filtrar por Data</button>
+    
     @foreach (var phase in phases)
     {
-      var displayPhase = phase.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS - CREA-PE - 0", "").Trim();
-      <button class="button" @onclick="() => FilterByPhase(phase)">Filtrar por @displayPhase</button>
+       var displayPhase = phase.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS - CREA-PE - 0", "").Trim();
+        <button class="button"
+                style="background-color: @GetPhaseColor(displayPhase); @GetActiveButtonStyle(phase)"
+                @onclick="() => SetActivePhase(phase)">
+            Filtrar por @displayPhase
+        </button>
     }
-
-    <button class="button" @onclick="ShowAdoptedProtocols">Mostrar Protocolos sob sua responsabilidade</button>
-    <button class="button" @onclick="ShowAllProtocols">Mostrar Todos os Protocolos</button>
+    
+    <button class="button" 
+            style="@GetActiveButtonStyle("ByDate")"
+            @onclick="() => FilterByDate()">
+        Filtrar por Data
+    </button>
+    
+    <button class="button" 
+            style="@GetActiveButtonStyle("Adopted")"
+            @onclick="() => ShowAdoptedProtocols()">
+        Mostrar Protocolos sob sua responsabilidade
+    </button>
+    
+    <button class="button" 
+            style="@GetActiveButtonStyle("All")"
+            @onclick="() => ShowAllProtocols()">
+        Mostrar Todos os Protocolos
+    </button>
+    
+   
+    
   </div> 
   @if (currentFilter == FilterMode.ByDate && filteredByDate != null && filteredByDate.Any())
   {
@@ -37,7 +59,7 @@
               <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
                    title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
                    @onclick="() => ShowProtocolModal(protocol)">
-                   <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
+                   
                   <div class="content">
                       <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
                   </div>
@@ -199,7 +221,8 @@
         "05 - EXECUÇÃO",
         "06 - ADITIVO DE CONTRATO"
     };
-
+    private string activePhase = string.Empty;
+    
     private enum FilterMode
     {
       None,
@@ -213,7 +236,8 @@
     private Dictionary<string, IEnumerable<ProtocolData>> filteredByPhase = new Dictionary<string, IEnumerable<ProtocolData>>();
     private IEnumerable<ProtocolData>? adoptedProtocols;
     private HashSet<string> adoptedProtocolsList = new HashSet<string>();
-
+    private string activeButton = string.Empty; 
+    
     private async Task AddToAdoptedProtocols(string numero)
     {
         if (!adoptedProtocolsList.Contains(numero))
@@ -270,11 +294,20 @@
     {
         currentFilter = FilterMode.ByDate;
         filteredByDate = protocolsList
-            .OrderBy(p => DateTime.Parse(p.GetDataUltimoMovimento()).Date) // Ordena pela data do último movimento
-            .ToList(); // Converte para uma lista se necessário
+            .OrderBy(p => DateTime.Parse(p.GetDataUltimoMovimento()).Date)
+            .ToList();
+        activeButton = "ByDate"; // Atualiza o botão ativo
         StateHasChanged(); // Atualiza a interface
     }
 
+    private void SetActivePhase(string phase)
+    {
+        activePhase = phase; // Define a fase ativa
+        FilterByPhase(phase); // Filtra pela fase selecionada
+        activeButton = phase; // Atualiza o botão ativo
+        StateHasChanged(); // Atualiza a interface
+    }
+    
     private void FilterByPhase(string selectedPhase)
     {
       currentFilter = FilterMode.ByPhase;
@@ -286,27 +319,49 @@
       
       StateHasChanged();
     }
-
+    
+    private string GetActiveButtonStyle(string buttonName)
+    {
+        // Se o botão for o ativo, aplica o estilo extra
+        if (activeButton == buttonName)
+        {
+            return "border: 3px solid #ff0000; transform: scale(1.1);"; // Borda vermelha e leve aumento de tamanho
+        }
+        return string.Empty; // Sem alteração para os botões inativos
+    }
+    
+    private string GetPhaseColor(string displayPhase)
+    {
+      return displayPhase switch
+      {
+        "01 - SOLICITAÇÃO DE CONTRATAÇÃO" => "#ffffffbe", // Cor para Solicitação
+        "02 - PLANEJAMENTO DE CONTRATAÇÃO" => "#0014c4", // Cor para Planejamento
+        "03 - CONTRATAÇÃO DIRETA" => "#680091", // Cor para Contratação
+        "04 - LICITAÇÃO" => "#dd009b", // Cor para Licitação
+        "05 - EXECUÇÃO" => "#818181", // Cor para Execução
+        "06 - ADITIVO DE CONTRATO" => "#7d9900", // Cor para Aditivo
+        _ => "#6c717d" // Cor padrão se não corresponder
+      };
+    }
+    
     private void ShowAdoptedProtocols()
     {
         currentFilter = FilterMode.Adopted;
-    
-        // Filtra os protocolos adotados usando a lista de números de protocolos adotados
         adoptedProtocols = protocolsList
             .Where(p => adoptedProtocolsList.Contains(p.Header.Numero))
             .ToList();
-    
-        // Atualiza a interface
-        StateHasChanged();
+        activeButton = "Adopted"; // Atualiza o botão ativo
+        StateHasChanged(); // Atualiza a interface
     }
-
+    
     private void ShowAllProtocols()
     {
         currentFilter = FilterMode.None;
         filteredByDate = null;
         filteredByPhase.Clear();
         adoptedProtocols = null;
-        StateHasChanged();
+        activeButton = "All"; // Atualiza o botão ativo
+        StateHasChanged(); // Atualiza a interface
     }
     
     public string GetPhaseClass(string assunto)
