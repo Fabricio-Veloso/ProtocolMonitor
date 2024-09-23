@@ -31,10 +31,9 @@
             @onclick="() => ShowAllProtocols()">
         Mostrar Todos os Protocolos
     </button>
-    
-   
-    
+
   </div> 
+  
   @if (currentFilter == FilterMode.ByDate && filteredByDate != null && filteredByDate.Any())
   {
       @foreach (var protocol in filteredByDate)
@@ -98,7 +97,7 @@
     }
   }
   
-  @if (miniProtocolsList != null && miniProtocolsList.Any())
+  @if (miniProtocolsList != null && miniProtocolsList.Any() && currentFilter == FilterMode.None)
 {
     foreach (var miniProtocol in miniProtocolsList.Where(p => !IsInBlacklist(p.Numero)))
     {
@@ -199,6 +198,11 @@
 
     [Parameter]
     public ByTimeColorConfig Config { get; set; }
+    
+    [Parameter]
+    public string sector { get; set; }
+    
+    
 
     /*MODAL VARIABLES*/
     private bool isProtocolModalVisible = false;
@@ -206,10 +210,10 @@
     private MiniProtocolData? selectedMiniProtocol = null;
     private ProtocolData? selectedProtocol = null;
 
-    // Lista negra para armazenar números de protocolos
+    // Lista negra para armazenar números de protocolos apagados
     private HashSet<string> blacklist = new HashSet<string>();
 
-    /*FILTERS*/
+    /*FILTERS VARIABLES*/
     private DateTime? selectedDate; // Para filtro por data
     private string? selectedPhase; // Para filtro por fase
     private List<string> phases = new List<string>
@@ -237,7 +241,11 @@
     private IEnumerable<ProtocolData>? adoptedProtocols;
     private HashSet<string> adoptedProtocolsList = new HashSet<string>();
     private string activeButton = string.Empty; 
+    private IEnumerable<ProtocolData>? ProtocolsWithResponsable;
+     /*FILTERS VARIABLES*/
     
+    
+    /*FILTERS FUNCTIONS*/
     private async Task AddToAdoptedProtocols(string numero)
     {
         if (!adoptedProtocolsList.Contains(numero))
@@ -285,12 +293,12 @@
         }
     }
     
-    private bool IsAdopted(string numero)
+    private bool       IsAdopted(string numero)
     {
         return adoptedProtocolsList.Contains(numero);
     }
     
-    private void FilterByDate()
+    private void       FilterByDate()
     {
         currentFilter = FilterMode.ByDate;
         filteredByDate = protocolsList
@@ -300,7 +308,7 @@
         StateHasChanged(); // Atualiza a interface
     }
 
-    private void SetActivePhase(string phase)
+    private void       SetActivePhase(string phase)
     {
         activePhase = phase; // Define a fase ativa
         FilterByPhase(phase); // Filtra pela fase selecionada
@@ -308,7 +316,7 @@
         StateHasChanged(); // Atualiza a interface
     }
     
-    private void FilterByPhase(string selectedPhase)
+    private void       FilterByPhase(string selectedPhase)
     {
       currentFilter = FilterMode.ByPhase;
       
@@ -320,7 +328,7 @@
       StateHasChanged();
     }
     
-    private string GetActiveButtonStyle(string buttonName)
+    private string     GetActiveButtonStyle(string buttonName)
     {
         // Se o botão for o ativo, aplica o estilo extra
         if (activeButton == buttonName)
@@ -330,7 +338,7 @@
         return string.Empty; // Sem alteração para os botões inativos
     }
     
-    private string GetPhaseColor(string displayPhase)
+    private string     GetPhaseColor(string displayPhase)
     {
       return displayPhase switch
       {
@@ -344,7 +352,7 @@
       };
     }
     
-    private void ShowAdoptedProtocols()
+    private void       ShowAdoptedProtocols()
     {
         currentFilter = FilterMode.Adopted;
         adoptedProtocols = protocolsList
@@ -354,7 +362,7 @@
         StateHasChanged(); // Atualiza a interface
     }
     
-    private void ShowAllProtocols()
+    private void       ShowAllProtocols()
     {
         currentFilter = FilterMode.None;
         filteredByDate = null;
@@ -364,7 +372,7 @@
         StateHasChanged(); // Atualiza a interface
     }
     
-    public string GetPhaseClass(string assunto)
+    public string      GetPhaseClass(string assunto)
     {
       if (phases.Contains(assunto))
       {
@@ -381,7 +389,9 @@
       }
       return "phase-default";
     }
-  /*FILTERS*/
+  /*FILTERS FUNCTIONS*/
+  
+  
   private string TruncateDescription(string description)
     {
         if (description.Length > 40)
@@ -391,13 +401,8 @@
         return description;
     }
 
-  protected override async Task OnInitializedAsync()
-  {
-      await LoadBlacklistFromLocalStorage();
-      
-      await LoadAdoptedProtocolsFromLocalStorage();
-  }
 
+  /*MODAL FUNCTIONS*/
   private void ShowProtocolModal(ProtocolData protocol)
     {
         selectedProtocol = protocol;
@@ -423,7 +428,10 @@
         isMiniProtocolModalVisible = false;
         selectedMiniProtocol = null;
     }
+  /*MODAL FUNCTIONS*/
    
+   
+   /*Black list FUNCTIONS*/
   private async Task AddToBlacklist(string numero)
   {
     blacklist.Add(numero); // Adiciona o número à lista negra
@@ -452,7 +460,10 @@
         blacklist = JsonConvert.DeserializeObject<HashSet<string>>(json); // Desserializa a blacklist
     }
 }
+  /*Black list FUNCTIONS*/
 
+
+ /*Data functions*/
   List<DateTime> feriados = new List<DateTime>
 {
     new DateTime(2024, 1, 1),  // Ano Novo
@@ -550,6 +561,14 @@
 
     return string.Empty; // Retorna vazio se a data não for válida
 }
+
+  protected override async Task OnInitializedAsync()
+  {
+      await LoadBlacklistFromLocalStorage();
+      
+      await LoadAdoptedProtocolsFromLocalStorage();
+  }
+ /*Data functions*/
 }
 
 
