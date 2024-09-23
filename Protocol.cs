@@ -245,29 +245,74 @@ namespace MyBlazorPwa
     // public MiniProtocolData miniProtocolData { get; set; } = new MiniProtocolData();
   }
 
-  public class ProtocolData{
+  public class ProtocolData
+{
     public Header Header { get; set; } = new Header();
-    public List<Moves> Moves { get; set; }  = new List<Moves>();
-    public ProtocolTrackingConfig trackingConfig { get; set; }  = new ProtocolTrackingConfig();
+    public List<Moves> Moves { get; set; } = new List<Moves>();
+    public ProtocolTrackingConfig trackingConfig { get; set; } = new ProtocolTrackingConfig();
+    
+    // Campo para armazenar o responsável
+    public string Responsavel = "Sem responsável";
 
-    public string GetDataUltimoMovimento() {
-        if (Moves != null && Moves.Count > 0) {
-            // Retorna a data do último movimento
-            return Moves.Last().Data ?? "Sem data"; // Use uma string padrão se Data for nulo
+    // Construtor que chama a função de identificação do responsável
+    public ProtocolData()
+    {
+        IdentificarResponsavel();
+    }
+
+    // Função para retornar a data do último movimento
+    public string GetDataUltimoMovimento()
+    {
+        if (Moves != null && Moves.Count > 0)
+        {
+            return Moves.Last().Data ?? "Sem data"; // Retorna uma string padrão se Data for nulo
         }
         return "Sem movimentos"; // Se não houver movimentos
     }
-    
-    public string GetSetorUltimoMovimento() {
-      if (Moves != null && Moves.Count > 0) {
-          return Moves.Last().SetorDestino ?? "Sem setor"; // Retorna o setor do último movimento
-      }
+
+    // Função para retornar o setor do último movimento
+    public string GetSetorUltimoMovimento()
+    {
+        if (Moves != null && Moves.Count > 0)
+        {
+            return Moves.Last().SetorDestino ?? "Sem setor"; // Retorna o setor do último movimento
+        }
         return "Sem movimentações"; // Se não houver movimentos
     }
-    
-    // Construtor padrão
-    public ProtocolData() { }
-  }
+
+    // Função para obter informações da última movimentação (setor de origem, destino e usuário destino)
+    public (string? SetorOrigem, string? SetorDestino, string? UsuarioDestino) GetUltimaMovimentacaoInfo()
+    {
+        if (Moves != null && Moves.Count > 0)
+        {
+            var ultimaMovimentacao = Moves.Last();
+            return (ultimaMovimentacao.SetorOrigem, ultimaMovimentacao.SetorDestino, ultimaMovimentacao.UsuarioDestino);
+        }
+        return (null, null, null); // Se não houver movimentos
+    }
+
+    // Função para identificar o responsável comparando o setor de origem e destino da última movimentação
+    private void IdentificarResponsavel()
+    {
+        if (Moves != null && Moves.Count > 0)
+        {
+            var ultimaMovimentacao = Moves.Last();
+
+            // Verifica se o setor de origem e destino são iguais
+            if (ultimaMovimentacao.SetorOrigem == ultimaMovimentacao.SetorDestino)
+            {
+                // Verifica se há um usuário de destino e atribui como responsável
+                if (!string.IsNullOrEmpty(ultimaMovimentacao.UsuarioDestino))
+                {
+                    this.Responsavel = ultimaMovimentacao.UsuarioDestino;
+                }
+            }
+        }
+
+        // Se não houver movimentos ou as condições não forem atendidas, atribui o valor padrão
+        Responsavel ??= "Sem responsável";
+    }
+}
 
   public class Header{
     public string? Interessado         { get; set; } = "Vazio";

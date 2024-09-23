@@ -1,4 +1,4 @@
-@page "/protocols"
+@page "/"
 @using System.Threading.Tasks
 @using System.Text.Json
 @inject WebSocketService WebSocketService
@@ -116,7 +116,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   private MiniProtocolData miniProtocolInstance = new MiniProtocolData();
   private List<MiniProtocolData> miniprotocols = new List<MiniProtocolData>();
   
-  private TimeSpan timeRemaining = TimeSpan.FromMinutes(5); // Timer inicial de 5 minutos
+  private TimeSpan timeRemaining = TimeSpan.FromMinutes(0.1); // Timer inicial de 5 minutos
   private string? selectedSector; // Setor selecionado
   private bool isConfigModalVisible = false;
   private bool startCheck = false;
@@ -168,6 +168,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
       
     // Aguarda a resposta do backend para saber quantos protocolos serão atualizados
     string response = await WebSocketService.ReceiveAsync();
+   
     if (int.TryParse(response, out int totalProtocols)  && totalProtocols > 0)
     {
       // Variável para controlar quantos protocolos foram processados
@@ -229,7 +230,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
       StateHasChanged();
     }
     
-    if(isUpdating == false && isLoading == false){
+    if(isUpdating == false && isLoading == false && protocols.Any()){
      // Quando o tempo acabar, realize a pesquisa de mini protocolos
       await UpdateProtocolsMoves(protocols);
     }else{
@@ -239,7 +240,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
    
     
     // Reinicie o timer para 5 minutos
-    timeRemaining = TimeSpan.FromMinutes(5);
+    timeRemaining = TimeSpan.FromMinutes(0.1);
     StateHasChanged();
     StartTimer();
     Console.WriteLine("Timer iniciado novamente");
@@ -451,7 +452,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     
     await TryConnectWebSocket();
     
-    // Tentar conectar ao WebSocket automaticamente
+   
     await UpdateProtocols();
     
     StartTimer();
