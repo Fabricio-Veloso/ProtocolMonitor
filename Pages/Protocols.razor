@@ -116,7 +116,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   private MiniProtocolData miniProtocolInstance = new MiniProtocolData();
   private List<MiniProtocolData> miniprotocols = new List<MiniProtocolData>();
   
-  private TimeSpan timeRemaining = TimeSpan.FromMinutes(0.1); // Timer inicial de 5 minutos
+  private TimeSpan timeRemaining = TimeSpan.FromMinutes(5); // Timer inicial de 5 minutos
   private string? selectedSector; // Setor selecionado
   private bool isConfigModalVisible = false;
   private bool startCheck = false;
@@ -240,7 +240,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
    
     
     // Reinicie o timer para 5 minutos
-    timeRemaining = TimeSpan.FromMinutes(0.1);
+    timeRemaining = TimeSpan.FromMinutes(5);
     StateHasChanged();
     StartTimer();
     Console.WriteLine("Timer iniciado novamente");
