@@ -31,8 +31,27 @@
             @onclick="() => ShowAllProtocols()">
         Mostrar Todos os Protocolos
     </button>
-
+    
+    <form id="textForm" style="margin-bottom: 20px;">
+      <input type="text" id="userInput" @bind="searchTerm" @oninput="FilterByText" name="userInput" placeholder="Número do protocolo ou descrição" class="input-field">
+    </form>
   </div> 
+  
+  @if (filteredBySearch != null && filteredBySearch.Any())
+{
+    foreach (var protocol in filteredBySearch)
+    {
+        <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+             title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+             @onclick="() => ShowProtocolModal(protocol)">
+             
+            <div class="content">
+                <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+            </div>
+        </div>
+    }
+}
+
   
   @if (currentFilter == FilterMode.ByDate && filteredByDate != null && filteredByDate.Any())
   {
@@ -232,7 +251,8 @@
       None,
       ByDate,
       ByPhase,
-      Adopted
+      Adopted,
+      byTextSeach
     }
 
     private FilterMode currentFilter = FilterMode.None;
@@ -242,10 +262,34 @@
     private HashSet<string> adoptedProtocolsList = new HashSet<string>();
     private string activeButton = string.Empty; 
     private IEnumerable<ProtocolData>? ProtocolsWithResponsable;
+    private string searchTerm = string.Empty; // Para armazenar o termo de busca
      /*FILTERS VARIABLES*/
     
     
     /*FILTERS FUNCTIONS*/
+    
+    private IEnumerable<ProtocolData>? filteredBySearch; // Para armazenar os protocolos filtrados por texto
+    
+    private void FilterByText(ChangeEventArgs e)
+    {
+        currentFilter = FilterMode.byTextSeach;
+        searchTerm = e.Value?.ToString() ?? string.Empty; // Atualiza o termo de busca
+        
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredBySearch = protocolsList
+                .Where(p => p.Header.Descricao != null && 
+                            p.Header.Descricao.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) // Filtro por descrição
+                .ToList();
+        }
+        else
+        {
+            filteredBySearch = null; // Mostra todos se o campo estiver vazio
+        }
+        
+        StateHasChanged(); // Atualiza a interface para refletir o novo filtro
+    }
+    
     private async Task AddToAdoptedProtocols(string numero)
     {
         if (!adoptedProtocolsList.Contains(numero))
