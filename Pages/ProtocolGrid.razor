@@ -68,24 +68,44 @@
       }
   }
   
-  @if (currentFilter == FilterMode.ByPhase && filteredByPhase.Any())
+  @if (currentFilter == FilterMode.ByPhase && (ProtocolsWithResponsable?.Any() == true || protocolsWithoutResponsable?.Any() == true))
   {
-      foreach (var phase in filteredByPhase)
+      <!-- Mostrar protocolos com responsável -->
+      @if (ProtocolsWithResponsable != null && ProtocolsWithResponsable.Any())
       {
-          foreach (var protocol in phase.Value)
-          {
-              <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
-                   title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
-                   @onclick="() => ShowProtocolModal(protocol)">
-                   
-                  <div class="content">
-                      <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+          <div class="responsavel-protocols">
+              <h4>Protocolos sob responsabilidade</h4>
+              @foreach (var protocol in ProtocolsWithResponsable)
+              {
+                  <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+                       title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+                       @onclick="() => ShowProtocolModal(protocol)">
+                      <div class="content">
+                          <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+                      </div>
                   </div>
-              </div>
-          }
+              }
+          </div>
+      }
+  
+      <!-- Mostrar protocolos sem responsável -->
+      @if (protocolsWithoutResponsable != null && protocolsWithoutResponsable.Any())
+      {
+          <div class="sem-responsavel-protocols">
+              <h4>Protocolos sem responsabilidade</h4>
+              @foreach (var protocol in protocolsWithoutResponsable)
+              {
+                  <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+                       title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+                       @onclick="() => ShowProtocolModal(protocol)">
+                      <div class="content">
+                          <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+                      </div>
+                  </div>
+              }
+          </div>
       }
   }
- 
   @if (currentFilter == FilterMode.Adopted && adoptedProtocols != null && adoptedProtocols.Any())
   {
       foreach (var protocol in adoptedProtocols)
@@ -263,6 +283,7 @@
     private string activeButton = string.Empty; 
     private IEnumerable<ProtocolData>? ProtocolsWithResponsable;
     private string searchTerm = string.Empty; // Para armazenar o termo de busca
+    private IEnumerable<ProtocolData>? protocolsWithoutResponsable; 
      /*FILTERS VARIABLES*/
     
     
@@ -360,17 +381,27 @@
         StateHasChanged(); // Atualiza a interface
     }
     
-    private void       FilterByPhase(string selectedPhase)
-    {
-      currentFilter = FilterMode.ByPhase;
-      
-      filteredByPhase = protocolsList
-          .Where(p => p.Header.Assunto == selectedPhase)
-          .GroupBy(p => p.Header.Assunto ?? "Unknown") // Use "Unknown" ou outro valor padrão se Assunto for nulo
-          .ToDictionary(g => g.Key!, g => g.AsEnumerable()); // Use o operador de não nulidade (!) para garantir que a chave não seja nula
-      
-      StateHasChanged();
-    }
+    private void FilterByPhase(string selectedPhase)
+{
+    currentFilter = FilterMode.ByPhase;
+
+    var protocolsInPhase = protocolsList
+        .Where(p => p.Header.Assunto == selectedPhase)
+        .ToList();
+
+    // Separar os protocolos com e sem responsável
+   ProtocolsWithResponsable = protocolsInPhase
+    .Where(p => !string.IsNullOrEmpty(p.Responsavel) && p.Responsavel != "Sem responsavel")
+    .ToList();
+
+  protocolsWithoutResponsable = protocolsInPhase
+      .Where(p => string.IsNullOrEmpty(p.Responsavel) || p.Responsavel == "Sem responsavel")
+      .ToList();
+
+
+    activeButton = selectedPhase;
+    StateHasChanged();
+}
     
     private string     GetActiveButtonStyle(string buttonName)
     {
@@ -386,7 +417,7 @@
     {
       return displayPhase switch
       {
-        "01 - SOLICITAÇÃO DE CONTRATAÇÃO" => "#ffffffbe", // Cor para Solicitação
+        "01 - SOLICITAÇÃO DE CONTRATAÇÃO" => "#ff9306", // Cor para Solicitação
         "02 - PLANEJAMENTO DE CONTRATAÇÃO" => "#0014c4", // Cor para Planejamento
         "03 - CONTRATAÇÃO DIRETA" => "#680091", // Cor para Contratação
         "04 - LICITAÇÃO" => "#dd009b", // Cor para Licitação

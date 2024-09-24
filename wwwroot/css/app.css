@@ -281,7 +281,7 @@ display: block;
   border-radius: 50%; /* Faz com que a div seja um círculo */
 }
 
-.phase-solicitacao { background-color: #ffffffbe; } /* Cor para Solicitação */
+.phase-solicitacao { background-color: #ff9306; } /* Cor para Solicitação */
 .phase-planejamento { background-color: #0014c4; } /* Cor para Planejamento */
 .phase-contratacao { background-color: #680091; } /* Cor para Contratação */
 .phase-licitacao { background-color: #dd009b; } /* Cor para Licitação */

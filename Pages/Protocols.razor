@@ -4,6 +4,7 @@
 @inject WebSocketService WebSocketService
 @using MyBlazorPwa
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager navigationManager
 
 @inject IJSRuntime JSRuntime
 <h1 class="title">Protocol Monitor</h1>
@@ -60,7 +61,8 @@ else if (isConnected && !hasConnectionMessageDisappeared)
             <label for="vermelho">Limite para vermelho (dias):</label>
             <input type="number" id="vermelho" @bind="colorConfig.ConfigVermelho" />
 
-            <button @onclick="SaveConfigurations">Salvar</button>
+            <button class="button" @onclick="SaveConfigurations">Salvar</button>
+            <button class="button" @onclick="LimparProtocolos">Resetar base de dados</button>
         </div>
     </div>
 }
@@ -186,6 +188,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
           // Cria uma nova instância de ProtocolData para cada novo protocolo recebido
           var newProtocolInstance = new ProtocolData();
           ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
+          newProtocolInstance.IdentificarResponsavel();
 
           // Substitui o protocolo existente, se houver
           var existingProtocol = protocols.FirstOrDefault(p => p.Header.Numero == newProtocolInstance.Header.Numero);
@@ -272,6 +275,14 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     expectativaMovimentacao = DateTime.Now.AddDays(colorConfig.ConfigExpectativaMovimentacao ?? 0);
     HideConfigModal();
   }
+  
+   private async Task LimparProtocolos()
+    {
+        // Remove as chaves 'protocols' e 'miniprotocols' do local storage
+        await localStorage.RemoveItemAsync("protocols");
+        await localStorage.RemoveItemAsync("miniprotocols");
+        navigationManager.NavigateTo(navigationManager.Uri, forceLoad: true);
+    }
 
   private async Task ConnectWebSocket() {
     await WebSocketService.ConnectAsync();
@@ -292,7 +303,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
       // Crie uma nova instância de ProtocolData para cada novo protocolo recebido
       var newProtocolInstance = new ProtocolData();
       ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
-  
+      newProtocolInstance.IdentificarResponsavel();
       // Verifique se o protocolo já existe antes de adicionar
       if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
         protocols.Add(newProtocolInstance);
@@ -348,7 +359,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
         // Cria uma nova instância de ProtocolData para cada novo protocolo recebido
         var newProtocolInstance = new ProtocolData();
         ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
-
+        newProtocolInstance.IdentificarResponsavel();
         // Verifica se o protocolo já existe antes de adicionar
         if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
           protocols.Add(newProtocolInstance);

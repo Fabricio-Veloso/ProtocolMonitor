@@ -252,12 +252,12 @@ namespace MyBlazorPwa
     public ProtocolTrackingConfig trackingConfig { get; set; } = new ProtocolTrackingConfig();
     
     // Campo para armazenar o responsável
-    public string Responsavel = "Sem responsável";
+    public string? Responsavel { get; set; } = "Sem responsavel";
 
     // Construtor que chama a função de identificação do responsável
     public ProtocolData()
     {
-        IdentificarResponsavel();
+      
     }
 
     // Função para retornar a data do último movimento
@@ -292,26 +292,25 @@ namespace MyBlazorPwa
     }
 
     // Função para identificar o responsável comparando o setor de origem e destino da última movimentação
-    private void IdentificarResponsavel()
+    public void IdentificarResponsavel()
     {
         if (Moves != null && Moves.Count > 0)
         {
             var ultimaMovimentacao = Moves.Last();
-
-            // Verifica se o setor de origem e destino são iguais
-            if (ultimaMovimentacao.SetorOrigem == ultimaMovimentacao.SetorDestino)
+            
+            if (ultimaMovimentacao.SetorOrigem == ultimaMovimentacao.SetorDestino 
+                && !string.IsNullOrEmpty(ultimaMovimentacao.UsuarioDestino))
             {
-                // Verifica se há um usuário de destino e atribui como responsável
-                if (!string.IsNullOrEmpty(ultimaMovimentacao.UsuarioDestino))
-                {
-                    this.Responsavel = ultimaMovimentacao.UsuarioDestino;
-                }
+                this.Responsavel = ultimaMovimentacao.UsuarioDestino;
+            }
+            else
+            {
+                this.Responsavel = "Sem responsavel";
             }
         }
-
-        // Se não houver movimentos ou as condições não forem atendidas, atribui o valor padrão
-        Responsavel ??= "Sem responsável";
+        
     }
+
 }
 
   public class Header{
