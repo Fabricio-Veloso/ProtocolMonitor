@@ -228,6 +228,58 @@ namespace MyBlazorPwa
     }
 }
 
+    public static void IdentifySponsor(ref ProtocolData protocol)
+    {
+        // Lista de setores e seus agentes
+        var setoresComAgentes = new Dictionary<string, List<string>>()
+        {
+            {
+                "Recife/Sede - (CLI) Comissão de Licitação", 
+                new List<string>
+                {
+                    "Diogo Bernardo da Silva",
+                    "Hugo Vasconcelos Fernandes da Costa",
+                    "João Cesar dos Santos",
+                    "Marilia Rosa Silva de Oliveira",
+                    "Rerivaldo de Amarantes",
+                    "Sandro da Costa Figueiroa"
+                }
+            }
+        };
+    
+        // Inicializa o responsável como "Sem responsavel"
+        protocol.Responsavel = "Sem responsavel";
+    
+        // Percorre todas as movimentações do protocolo em ordem
+        if (protocol.Moves != null && protocol.Moves.Count > 0)
+        {
+            foreach (var movimentacao in protocol.Moves)
+            {
+                // Verifica se a descrição não é "Passo Inicial." ou "Protocolo recebido para análise. Passo automático!"
+                if (movimentacao.Descricao != "Passo Inicial." && movimentacao.Descricao != "Protocolo recebido para análise. Passo automático!")
+                {
+                    // Verifica se o setor de origem e destino não são nulos
+                    if (!string.IsNullOrEmpty(movimentacao.SetorOrigem) && !string.IsNullOrEmpty(movimentacao.SetorDestino))
+                    {
+                        // Verifica se o setor de origem e destino estão no dicionário de setores com agentes
+                        if (setoresComAgentes.ContainsKey(movimentacao.SetorOrigem) 
+                            && setoresComAgentes.ContainsKey(movimentacao.SetorDestino))
+                        {
+                            // Verifica se o usuário de destino pertence à lista de agentes do setor
+                            if (!string.IsNullOrEmpty(movimentacao.UsuarioDestino) 
+                                && setoresComAgentes[movimentacao.SetorDestino].Contains(movimentacao.UsuarioDestino))
+                            {
+                                // Atualiza o responsável com o usuário de destino
+                                protocol.Responsavel = movimentacao.UsuarioDestino;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
   }
   
   public class MiniProtocolData
@@ -252,12 +304,12 @@ namespace MyBlazorPwa
     public ProtocolTrackingConfig trackingConfig { get; set; } = new ProtocolTrackingConfig();
     
     // Campo para armazenar o responsável
-    public string Responsavel = "Sem responsável";
+    public string? Responsavel { get; set; } = "Sem responsavel";
 
     // Construtor que chama a função de identificação do responsável
     public ProtocolData()
     {
-        IdentificarResponsavel();
+      
     }
 
     // Função para retornar a data do último movimento
@@ -280,38 +332,8 @@ namespace MyBlazorPwa
         return "Sem movimentações"; // Se não houver movimentos
     }
 
-    // Função para obter informações da última movimentação (setor de origem, destino e usuário destino)
-    public (string? SetorOrigem, string? SetorDestino, string? UsuarioDestino) GetUltimaMovimentacaoInfo()
-    {
-        if (Moves != null && Moves.Count > 0)
-        {
-            var ultimaMovimentacao = Moves.Last();
-            return (ultimaMovimentacao.SetorOrigem, ultimaMovimentacao.SetorDestino, ultimaMovimentacao.UsuarioDestino);
-        }
-        return (null, null, null); // Se não houver movimentos
-    }
+   
 
-    // Função para identificar o responsável comparando o setor de origem e destino da última movimentação
-    private void IdentificarResponsavel()
-    {
-        if (Moves != null && Moves.Count > 0)
-        {
-            var ultimaMovimentacao = Moves.Last();
-
-            // Verifica se o setor de origem e destino são iguais
-            if (ultimaMovimentacao.SetorOrigem == ultimaMovimentacao.SetorDestino)
-            {
-                // Verifica se há um usuário de destino e atribui como responsável
-                if (!string.IsNullOrEmpty(ultimaMovimentacao.UsuarioDestino))
-                {
-                    this.Responsavel = ultimaMovimentacao.UsuarioDestino;
-                }
-            }
-        }
-
-        // Se não houver movimentos ou as condições não forem atendidas, atribui o valor padrão
-        Responsavel ??= "Sem responsável";
-    }
 }
 
   public class Header{

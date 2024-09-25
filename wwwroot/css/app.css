@@ -196,8 +196,41 @@ display: block;
   justify-content: space-around; 
   padding: 10px;
   background-color: #4A89D3; 
-  height: calc(100vh - 90px); 
-  overflow-y: hidden; 
+  height:fit-content;
+  overflow-y: auto;
+  width: 100%; /* Garante que a div ocupe toda a largura */
+  margin: 0; /* Remove qualquer margem que possa estar presente */
+  box-sizing: border-box; /* Inclui padding na largura total */
+}
+
+.responsavel-group {
+  display: flex;
+  border: 1px solid #ccc; /* Borda para delimitar o grupo */
+  border-radius: 8px; /* Bordas arredondadas */
+  padding: 10px; /* Espaçamento interno */
+  margin: 10px 0; /* Menos margem, ajustando o espaço entre os grupos */
+  background-color: #f9f9f9; /* Cor de fundo suave */
+  width: fit-content; /* Ajusta a largura ao conteúdo */
+  height:fit-content;
+  justify-content: center;
+}
+
+
+
+.sem-responsavel-group {
+  display: flex;
+  flex-wrap: wrap; 
+  padding-top: 10px; /* Espaçamento acima */
+  width: calc(100% - 20px);
+  width: fit-content;
+  justify-content:space-around;
+  
+}
+
+.responsavel-group h3 {
+  margin: 0 0 10px 0; /* Margem inferior para o título */
+  color: #333; /* Cor do texto do título */
+  font-size: 1.2em; /* Tamanho da fonte do título */
 }
 
 .miniprotocol-card {
@@ -239,21 +272,12 @@ display: block;
   }
 }
 
-/* Protocol Grid */
-.protocol-grid {
-  display: flex;
-  flex-wrap: wrap; 
-  justify-content: space-around; 
-  padding: 10px;
-  background-color: #4A89D3; 
-  height: calc(100vh - 20px); 
-  overflow-y: hidden; 
-}
+
 
 .protocol-card {
   position: relative;
   display: flex; 
-  justify-content: top; 
+  justify-content: center; 
   align-items: center; 
   flex-direction: column; 
   width: 120px; 
@@ -270,6 +294,8 @@ display: block;
   box-sizing: border-box; /* Inclui o padding nas dimensões totais */
 }
 
+
+
 .phase-label {
   position: absolute;
   top: 0;
@@ -281,7 +307,7 @@ display: block;
   border-radius: 50%; /* Faz com que a div seja um círculo */
 }
 
-.phase-solicitacao { background-color: #ffffffbe; } /* Cor para Solicitação */
+.phase-solicitacao { background-color: #ff9306; } /* Cor para Solicitação */
 .phase-planejamento { background-color: #0014c4; } /* Cor para Planejamento */
 .phase-contratacao { background-color: #680091; } /* Cor para Contratação */
 .phase-licitacao { background-color: #dd009b; } /* Cor para Licitação */
