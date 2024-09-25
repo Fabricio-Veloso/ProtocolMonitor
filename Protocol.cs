@@ -246,32 +246,39 @@ namespace MyBlazorPwa
                 }
             }
         };
-
+    
+        // Inicializa o responsável como "Sem responsavel"
+        protocol.Responsavel = "Sem responsavel";
+    
+        // Percorre todas as movimentações do protocolo em ordem
         if (protocol.Moves != null && protocol.Moves.Count > 0)
         {
-            var ultimaMovimentacao = protocol.Moves.Last();
-
-            // Verifica se o setor de origem e destino é o mesmo
-            if (!string.IsNullOrEmpty(ultimaMovimentacao.SetorOrigem) && !string.IsNullOrEmpty(ultimaMovimentacao.SetorDestino))
+            foreach (var movimentacao in protocol.Moves)
             {
-                // Verifica se o setor de origem e destino está no dicionário de setores
-                if (setoresComAgentes.ContainsKey(ultimaMovimentacao.SetorOrigem) 
-                    && setoresComAgentes.ContainsKey(ultimaMovimentacao.SetorDestino))
+                // Verifica se a descrição não é "Passo Inicial." ou "Protocolo recebido para análise. Passo automático!"
+                if (movimentacao.Descricao != "Passo Inicial." && movimentacao.Descricao != "Protocolo recebido para análise. Passo automático!")
                 {
-                    // Verifica se o usuário de destino pertence à lista de agentes do setor
-                    if (!string.IsNullOrEmpty(ultimaMovimentacao.UsuarioDestino) 
-                        && setoresComAgentes[ultimaMovimentacao.SetorDestino].Contains(ultimaMovimentacao.UsuarioDestino))
+                    // Verifica se o setor de origem e destino não são nulos
+                    if (!string.IsNullOrEmpty(movimentacao.SetorOrigem) && !string.IsNullOrEmpty(movimentacao.SetorDestino))
                     {
-                        protocol.Responsavel = ultimaMovimentacao.UsuarioDestino;
-                        return;
+                        // Verifica se o setor de origem e destino estão no dicionário de setores com agentes
+                        if (setoresComAgentes.ContainsKey(movimentacao.SetorOrigem) 
+                            && setoresComAgentes.ContainsKey(movimentacao.SetorDestino))
+                        {
+                            // Verifica se o usuário de destino pertence à lista de agentes do setor
+                            if (!string.IsNullOrEmpty(movimentacao.UsuarioDestino) 
+                                && setoresComAgentes[movimentacao.SetorDestino].Contains(movimentacao.UsuarioDestino))
+                            {
+                                // Atualiza o responsável com o usuário de destino
+                                protocol.Responsavel = movimentacao.UsuarioDestino;
+                            }
+                        }
                     }
                 }
             }
-
-            // Se não encontrar correspondência, define como "Sem responsavel"
-            protocol.Responsavel = "Sem responsavel";
         }
     }
+
 
   }
   
