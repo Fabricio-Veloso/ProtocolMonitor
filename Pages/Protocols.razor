@@ -188,7 +188,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
           // Cria uma nova instância de ProtocolData para cada novo protocolo recebido
           var newProtocolInstance = new ProtocolData();
           ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
-          newProtocolInstance.IdentificarResponsavel();
+          ProtocolLoader.IdentifySponsor(ref newProtocolInstance);
 
           // Substitui o protocolo existente, se houver
           var existingProtocol = protocols.FirstOrDefault(p => p.Header.Numero == newProtocolInstance.Header.Numero);
@@ -303,7 +303,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
       // Crie uma nova instância de ProtocolData para cada novo protocolo recebido
       var newProtocolInstance = new ProtocolData();
       ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
-      newProtocolInstance.IdentificarResponsavel();
+      ProtocolLoader.IdentifySponsor(ref newProtocolInstance);
       // Verifique se o protocolo já existe antes de adicionar
       if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
         protocols.Add(newProtocolInstance);
@@ -359,7 +359,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
         // Cria uma nova instância de ProtocolData para cada novo protocolo recebido
         var newProtocolInstance = new ProtocolData();
         ProtocolLoader.PD_FromJson(receivedMessage, ref newProtocolInstance);
-        newProtocolInstance.IdentificarResponsavel();
+        ProtocolLoader.IdentifySponsor(ref newProtocolInstance);
         // Verifica se o protocolo já existe antes de adicionar
         if (!protocols.Any(p => p.Header.Numero == newProtocolInstance.Header.Numero)) {
           protocols.Add(newProtocolInstance);

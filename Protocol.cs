@@ -228,6 +228,51 @@ namespace MyBlazorPwa
     }
 }
 
+    public static void IdentifySponsor(ref ProtocolData protocol)
+    {
+        // Lista de setores e seus agentes
+        var setoresComAgentes = new Dictionary<string, List<string>>()
+        {
+            {
+                "Recife/Sede - (CLI) Comissão de Licitação", 
+                new List<string>
+                {
+                    "Diogo Bernardo da Silva",
+                    "Hugo Vasconcelos Fernandes da Costa",
+                    "João Cesar dos Santos",
+                    "Marilia Rosa Silva de Oliveira",
+                    "Rerivaldo de Amarantes",
+                    "Sandro da Costa Figueiroa"
+                }
+            }
+        };
+
+        if (protocol.Moves != null && protocol.Moves.Count > 0)
+        {
+            var ultimaMovimentacao = protocol.Moves.Last();
+
+            // Verifica se o setor de origem e destino é o mesmo
+            if (!string.IsNullOrEmpty(ultimaMovimentacao.SetorOrigem) && !string.IsNullOrEmpty(ultimaMovimentacao.SetorDestino))
+            {
+                // Verifica se o setor de origem e destino está no dicionário de setores
+                if (setoresComAgentes.ContainsKey(ultimaMovimentacao.SetorOrigem) 
+                    && setoresComAgentes.ContainsKey(ultimaMovimentacao.SetorDestino))
+                {
+                    // Verifica se o usuário de destino pertence à lista de agentes do setor
+                    if (!string.IsNullOrEmpty(ultimaMovimentacao.UsuarioDestino) 
+                        && setoresComAgentes[ultimaMovimentacao.SetorDestino].Contains(ultimaMovimentacao.UsuarioDestino))
+                    {
+                        protocol.Responsavel = ultimaMovimentacao.UsuarioDestino;
+                        return;
+                    }
+                }
+            }
+
+            // Se não encontrar correspondência, define como "Sem responsavel"
+            protocol.Responsavel = "Sem responsavel";
+        }
+    }
+
   }
   
   public class MiniProtocolData
@@ -280,36 +325,7 @@ namespace MyBlazorPwa
         return "Sem movimentações"; // Se não houver movimentos
     }
 
-    // Função para obter informações da última movimentação (setor de origem, destino e usuário destino)
-    public (string? SetorOrigem, string? SetorDestino, string? UsuarioDestino) GetUltimaMovimentacaoInfo()
-    {
-        if (Moves != null && Moves.Count > 0)
-        {
-            var ultimaMovimentacao = Moves.Last();
-            return (ultimaMovimentacao.SetorOrigem, ultimaMovimentacao.SetorDestino, ultimaMovimentacao.UsuarioDestino);
-        }
-        return (null, null, null); // Se não houver movimentos
-    }
-
-    // Função para identificar o responsável comparando o setor de origem e destino da última movimentação
-    public void IdentificarResponsavel()
-    {
-        if (Moves != null && Moves.Count > 0)
-        {
-            var ultimaMovimentacao = Moves.Last();
-            
-            if (ultimaMovimentacao.SetorOrigem == ultimaMovimentacao.SetorDestino 
-                && !string.IsNullOrEmpty(ultimaMovimentacao.UsuarioDestino))
-            {
-                this.Responsavel = ultimaMovimentacao.UsuarioDestino;
-            }
-            else
-            {
-                this.Responsavel = "Sem responsavel";
-            }
-        }
-        
-    }
+   
 
 }
 
