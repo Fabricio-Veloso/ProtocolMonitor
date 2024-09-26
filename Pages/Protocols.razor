@@ -6,6 +6,8 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 
+
+
 @inject IJSRuntime JSRuntime
 <h1 class="title">Protocol Monitor</h1>
 <!--<h2>Tempo restante para a próxima atualização: @timeRemaining.Minutes:@timeRemaining.Seconds</h2>-->
@@ -92,10 +94,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
 }
 -->
 
-@if (ProtocolRequestStatus != true)
-{
-  <h4>Ocorreu um erro ao requisitar um novo protocolo</h4>
-}
+
 @if (!protocols.Any() && !miniprotocols.Any())
 {
   <p>Não há protocolos salvos. Por favor pesquise Novos protocolos</p>

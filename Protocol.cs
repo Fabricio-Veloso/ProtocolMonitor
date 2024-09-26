@@ -332,8 +332,6 @@ namespace MyBlazorPwa
         return "Sem movimentações"; // Se não houver movimentos
     }
 
-   
-
 }
 
   public class Header{

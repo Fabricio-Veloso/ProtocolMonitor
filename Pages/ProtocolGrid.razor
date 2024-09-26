@@ -1,7 +1,24 @@
 @using MyBlazorPwa
 @inject IJSRuntime JSRuntime
+@using MudBlazor
+
+
 <div>
 
+  
+  <div>
+    <MudButton OnClick="() => OpenModal(protocolsList)">Abrir Gráfico</MudButton>
+
+    <MudDialog @bind-Open="ischartModalVisible">
+        <DialogContent>
+            <MudDonutChart Data="@chartData" Label="Setor" Value="AverageHours" />
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="() => ischartModalVisible = false">Fechar</MudButton>
+        </DialogActions>
+    </MudDialog>
+    </div>
+  
   <div> 
       
       @foreach (var phase in phases)
@@ -32,11 +49,14 @@
           Mostrar Todos os Protocolos
       </button>
       
-      <form id="textForm" style="margin-bottom: 20px;">
+      <form id="textForm" style="margin-bottom: 20px">
         <input type="text" id="userInput" @bind="searchTerm" @oninput="FilterByText" name="userInput" placeholder="Número do protocolo ou descrição" class="input-field">
       </form>
     </div> 
-  
+    
+    
+    
+    
   <div class="miniprotocol-grid">
     
     
@@ -80,10 +100,7 @@
               <div class="responsavel-group">
                   <div class=".responsavel-group h3">
                     <h3>@GetFirstTwoWords(group.Key)</h3>
-                  
-
-                  
-  
+        
                   @if (group.Any())
                   {
                       foreach (var protocol in group)
@@ -247,6 +264,10 @@
           </div>
       }
       
+   
+
+
+
   </div>
 
 </div>
@@ -275,7 +296,95 @@
 
     // Lista negra para armazenar números de protocolos apagados
     private HashSet<string> blacklist = new HashSet<string>();
+    
+    /*GRAFIC VARIABLES AND FUNCTIONS*/
+    public class ChartData
+    {
+        public string? Setor { get; set; }
+        public double AverageHours { get; set; }
+    }
+    private List<ChartData> chartData = new List<ChartData>();
 
+    public void PrepareChartData(List<ProtocolData> protocolos)
+    {
+        var mediaHorasPorSetor = CalcularMediaHorasPorSetor(protocolos);
+        chartData = mediaHorasPorSetor.Select(kvp => new ChartData
+        {
+            Setor = kvp.Key,
+            AverageHours = kvp.Value
+        }).ToList();
+    }
+    
+    
+    private List<string> setores = new List<string>();
+    private List<double> mediasHoras = new List<double>();
+    private bool ischartModalVisible = false;
+    
+    void OpenModal(List<ProtocolData> protocols)
+    {
+        if (protocols == null || !protocols.Any())
+        {
+            
+            return;
+        }
+         PrepareChartData(protocols);
+        ischartModalVisible = true;
+      }
+        
+
+
+    // Função que será chamada ao clicar no botão para gerar o gráfico
+   
+    public class SectorTimeData
+{
+    public string Setor { get; set; }
+    public double TotalHours { get; set; }
+    public int Occurrences { get; set; }
+
+    public double AverageHours()
+    {
+        return Occurrences > 0 ? TotalHours / Occurrences : 0;
+    }
+}
+
+    // Função para calcular a média de horas por setor  
+    public Dictionary<string, double> CalcularMediaHorasPorSetor(List<ProtocolData> protocolos)
+{
+    var setorTimeData = new Dictionary<string, SectorTimeData>();
+
+    foreach (var protocolo in protocolos)
+    {
+        var movimentos = protocolo.Moves;
+
+        for (int i = 1; i < movimentos.Count; i++) // Começa do segundo movimento
+        {
+            var movimentoAnterior = movimentos[i - 1];
+            var movimentoAtual = movimentos[i];
+
+            if (!string.IsNullOrEmpty(movimentoAnterior.Data) && !string.IsNullOrEmpty(movimentoAtual.Data))
+            {
+                DateTime dataAnterior = DateTime.Parse(movimentoAnterior.Data);
+                DateTime dataAtual = DateTime.Parse(movimentoAtual.Data);
+
+                TimeSpan diff = dataAtual - dataAnterior;
+                string setor = movimentoAnterior.SetorDestino ?? "Sem setor";
+
+                if (!setorTimeData.ContainsKey(setor))
+                {
+                    setorTimeData[setor] = new SectorTimeData { Setor = setor, TotalHours = 0, Occurrences = 0 };
+                }
+
+                setorTimeData[setor].TotalHours += diff.TotalHours;
+                setorTimeData[setor].Occurrences++;
+            }
+        }
+    }
+
+    // Retorna a média de horas por setor
+    return setorTimeData.ToDictionary(data => data.Key, data => data.Value.AverageHours());
+}
+    /*GRAFIC VARIABLES AND FUNCTIONS*/
+    
     /*FILTERS VARIABLES*/
     
     private DateTime? selectedDate; // Para filtro por data
@@ -680,4 +789,4 @@
  /*Data functions*/
 }
 
-
+}
