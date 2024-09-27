@@ -4,20 +4,7 @@
 
 
 <div>
-
-  
-  <div>
-    <MudButton OnClick="() => OpenModal(protocolsList)">Abrir Gráfico</MudButton>
-
-    <MudDialog @bind-Open="ischartModalVisible">
-        <DialogContent>
-            <MudDonutChart Data="@chartData" Label="Setor" Value="AverageHours" />
-        </DialogContent>
-        <DialogActions>
-            <MudButton OnClick="() => ischartModalVisible = false">Fechar</MudButton>
-        </DialogActions>
-    </MudDialog>
-    </div>
+    
   
   <div> 
       
@@ -54,7 +41,7 @@
       </form>
     </div> 
     
-    
+
     
     
   <div class="miniprotocol-grid">
@@ -270,6 +257,27 @@
 
   </div>
 
+  
+      <MudPaper Class="pa-16 ma-2" Elevation="3">
+        <MudButton OnClick="OpenModal" Variant="Variant.Filled" Color="Color.Primary" >Abrir Gráfico</MudButton>
+      </MudPaper>
+      
+  
+    @if(ischartModalVisible == true){
+      <div class="modal">
+        <div class="modal-content">
+          <MudPaper Class="pa-16 ma-2" Elevation="3">
+            <MudChart ChartType="ChartType.Donut" Width="300px" Height="300px" @bind-SelectedIndex="selectedIndex" InputData="@mediasHoras" InputLabels="@setores.ToArray()"></MudChart>
+          </MudPaper>
+          <MudPaper Class="pa-4 mt-2 d-flex justify-center">
+            <MudButton OnClick="CloseModal" Color="Color.Secondary">Fechar</MudButton>
+          </MudPaper>
+          </div>
+    </div>
+    }else{Console.WriteLine("Inschatmodal não está visível");}
+    
+  
+  
 </div>
 
 
@@ -293,96 +301,115 @@
     private bool isMiniProtocolModalVisible = false;
     private MiniProtocolData? selectedMiniProtocol = null;
     private ProtocolData? selectedProtocol = null;
-
+    /*MODAL VARIABLES*/
     // Lista negra para armazenar números de protocolos apagados
     private HashSet<string> blacklist = new HashSet<string>();
     
+    
+    
     /*GRAFIC VARIABLES AND FUNCTIONS*/
-    public class ChartData
-    {
-        public string? Setor { get; set; }
-        public double AverageHours { get; set; }
-    }
-    private List<ChartData> chartData = new List<ChartData>();
+    private List<string> setores = new List<string>();
+    private double[] mediasHoras = new double[0];
+    private bool ischartModalVisible = false;
+    private int selectedIndex = -1;
 
-    public void PrepareChartData(List<ProtocolData> protocolos)
+  
+    
+
+    // Função para abrir o modal e preparar os dados do gráfico
+   async Task  OpenModal()
     {
+        Console.WriteLine("OpenModal chamado."); // Para verificação
+        ischartModalVisible = true;
+        Console.WriteLine(ischartModalVisible);
+        await PrepareChartData(protocolsList); // Prepara os dados
+        setores = chartData
+        .Select(c => c.Setor.Replace("Recife/Sede - ", string.Empty))
+        .ToList();
+        mediasHoras = chartData.Select(c => c.AverageHours).ToArray();
+        
+    }
+
+    // Função para fechar o modal
+    void CloseModal()
+    {
+        ischartModalVisible = false;
+        
+    }
+
+    // Função que prepara os dados para o gráfico
+    async Task PrepareChartData(List<ProtocolData> protocolos)
+    {
+        Console.WriteLine($"Protocolos recebidos: {protocolos.Count}");
         var mediaHorasPorSetor = CalcularMediaHorasPorSetor(protocolos);
         chartData = mediaHorasPorSetor.Select(kvp => new ChartData
         {
             Setor = kvp.Key,
             AverageHours = kvp.Value
         }).ToList();
-    }
-    
-    
-    private List<string> setores = new List<string>();
-    private List<double> mediasHoras = new List<double>();
-    private bool ischartModalVisible = false;
-    
-    void OpenModal(List<ProtocolData> protocols)
-    {
-        if (protocols == null || !protocols.Any())
-        {
-            
-            return;
-        }
-         PrepareChartData(protocols);
-        ischartModalVisible = true;
-      }
         
-
-
-    // Função que será chamada ao clicar no botão para gerar o gráfico
-   
-    public class SectorTimeData
-{
-    public string Setor { get; set; }
-    public double TotalHours { get; set; }
-    public int Occurrences { get; set; }
-
-    public double AverageHours()
-    {
-        return Occurrences > 0 ? TotalHours / Occurrences : 0;
+        Console.WriteLine($"Dados do gráfico preparados: {chartData.Count} setores.");
     }
-}
 
-    // Função para calcular a média de horas por setor  
-    public Dictionary<string, double> CalcularMediaHorasPorSetor(List<ProtocolData> protocolos)
-{
-    var setorTimeData = new Dictionary<string, SectorTimeData>();
-
-    foreach (var protocolo in protocolos)
+    // A sua classe ChartData já definida
+    public class ChartData
     {
-        var movimentos = protocolo.Moves;
+        public string? Setor { get; set; }
+        public double AverageHours { get; set; }
+    }
 
-        for (int i = 1; i < movimentos.Count; i++) // Começa do segundo movimento
+    // A lista que contém os dados do gráfico
+    private List<ChartData> chartData = new List<ChartData>();
+
+    // A função que calcula a média das horas por setor (já implementada)
+    public Dictionary<string, double> CalcularMediaHorasPorSetor(List<ProtocolData> protocolos)
+    {
+        var setorTimeData = new Dictionary<string, SectorTimeData>();
+
+        foreach (var protocolo in protocolos)
         {
-            var movimentoAnterior = movimentos[i - 1];
-            var movimentoAtual = movimentos[i];
+            var movimentos = protocolo.Moves;
 
-            if (!string.IsNullOrEmpty(movimentoAnterior.Data) && !string.IsNullOrEmpty(movimentoAtual.Data))
+            for (int i = 1; i < movimentos.Count; i++) // Começa do segundo movimento
             {
-                DateTime dataAnterior = DateTime.Parse(movimentoAnterior.Data);
-                DateTime dataAtual = DateTime.Parse(movimentoAtual.Data);
+                var movimentoAnterior = movimentos[i - 1];
+                var movimentoAtual = movimentos[i];
 
-                TimeSpan diff = dataAtual - dataAnterior;
-                string setor = movimentoAnterior.SetorDestino ?? "Sem setor";
-
-                if (!setorTimeData.ContainsKey(setor))
+                if (!string.IsNullOrEmpty(movimentoAnterior.Data) && !string.IsNullOrEmpty(movimentoAtual.Data))
                 {
-                    setorTimeData[setor] = new SectorTimeData { Setor = setor, TotalHours = 0, Occurrences = 0 };
-                }
+                    DateTime dataAnterior = DateTime.Parse(movimentoAnterior.Data);
+                    DateTime dataAtual = DateTime.Parse(movimentoAtual.Data);
 
-                setorTimeData[setor].TotalHours += diff.TotalHours;
-                setorTimeData[setor].Occurrences++;
+                    TimeSpan diff = dataAtual - dataAnterior;
+                    string setor = movimentoAnterior.SetorDestino ?? "Sem setor";
+
+                    if (!setorTimeData.ContainsKey(setor))
+                    {
+                        setorTimeData[setor] = new SectorTimeData { Setor = setor, TotalHours = 0, Occurrences = 0 };
+                    }
+
+                    setorTimeData[setor].TotalHours += diff.TotalHours;
+                    setorTimeData[setor].Occurrences++;
+                }
             }
         }
+
+        // Retorna a média de horas por setor
+        return setorTimeData.ToDictionary(data => data.Key, data => data.Value.AverageHours());
     }
 
-    // Retorna a média de horas por setor
-    return setorTimeData.ToDictionary(data => data.Key, data => data.Value.AverageHours());
-}
+    public class SectorTimeData
+    {
+        public string Setor { get; set; }
+        public double TotalHours { get; set; }
+        public int Occurrences { get; set; }
+
+        public double AverageHours()
+        {
+            return Occurrences > 0 ? TotalHours / Occurrences : 0;
+        }
+    }
+    
     /*GRAFIC VARIABLES AND FUNCTIONS*/
     
     /*FILTERS VARIABLES*/
@@ -789,4 +816,4 @@
  /*Data functions*/
 }
 
-}
+

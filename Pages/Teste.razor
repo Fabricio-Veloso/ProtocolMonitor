@@ -10,8 +10,8 @@
 @inject NavigationManager navigationManager
 @inject IJSRuntime JSRuntime
 
-<MudAppBar Color="Color.Primary" Fixed="false" >
-    <MudText  Typo="Typo.h3" >Monitor De Protocolos</MudText>
+<MudAppBar Fixed="true" Bottom="false" Color="Color.Primary"  >
+    <MudText  Typo="Typo.h6" >Monitor De Protocolos</MudText>
 </MudAppBar>
 
 <MudChip T="string" Color="Color.Info" Size="Size.Large"> @timeRemaining</MudChip>
@@ -27,6 +27,25 @@
   <MudText  Typo="Typo.h6" >Estabelecendo conexão com o back-end local</MudText>
   <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
 }
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenModal">Abrir Gráfico</MudButton>
+
+<MudDialog @bind-IsVisible="ischartModalVisible" MaxWidth="500px" FullWidth="true" CloseOnEscape="true">
+    <DialogContent>
+        <MudPaper Class="pa-4">
+            <MudChart ChartType="ChartType.Donut" Width="300px" Height="300px" @bind-SelectedIndex="selectedIndex" InputData="@mediasHoras" InputLabels="@setores.ToArray()"></MudChart>
+        </MudPaper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseModal" Color="Color.Secondary">Fechar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudForm>
+</MudForm>
+
+ 
+
 
 @code {
   private DateTime expectativaMovimentacao = DateTime.Now.AddDays(3);
@@ -51,6 +70,102 @@
   private bool startCheck = false;
   
   private bool isUpdating = false;
+  
+  /*GRAFIC VARIABLES AND FUNCTIONS*/
+    private List<string> setores = new List<string>();
+    private double[] mediasHoras = new double[0];
+    private bool ischartModalVisible = false;
+    private int selectedIndex = -1;
+
+    // Dados de teste para os protocolos (substitua pelos seus dados reais)
+    private List<ProtocolData> protocolos = new List<ProtocolData>(); 
+
+    // Função para abrir o modal e preparar os dados do gráfico
+    void OpenModal()
+    {
+        PrepareChartData(protocolos); // Prepara os dados
+        setores = chartData.Select(c => c.Setor).ToList();
+        mediasHoras = chartData.Select(c => c.AverageHours).ToArray();
+        ischartModalVisible = true;
+    }
+
+    // Função para fechar o modal
+    void CloseModal()
+    {
+        ischartModalVisible = false;
+    }
+
+    // Função que prepara os dados para o gráfico
+    public void PrepareChartData(List<ProtocolData> protocolos)
+    {
+        var mediaHorasPorSetor = CalcularMediaHorasPorSetor(protocolos);
+        chartData = mediaHorasPorSetor.Select(kvp => new ChartData
+        {
+            Setor = kvp.Key,
+            AverageHours = kvp.Value
+        }).ToList();
+    }
+
+    // A sua classe ChartData já definida
+    public class ChartData
+    {
+        public string? Setor { get; set; }
+        public double AverageHours { get; set; }
+    }
+
+    // A lista que contém os dados do gráfico
+    private List<ChartData> chartData = new List<ChartData>();
+
+    // A função que calcula a média das horas por setor (já implementada)
+    public Dictionary<string, double> CalcularMediaHorasPorSetor(List<ProtocolData> protocolos)
+    {
+        var setorTimeData = new Dictionary<string, SectorTimeData>();
+
+        foreach (var protocolo in protocolos)
+        {
+            var movimentos = protocolo.Moves;
+
+            for (int i = 1; i < movimentos.Count; i++) // Começa do segundo movimento
+            {
+                var movimentoAnterior = movimentos[i - 1];
+                var movimentoAtual = movimentos[i];
+
+                if (!string.IsNullOrEmpty(movimentoAnterior.Data) && !string.IsNullOrEmpty(movimentoAtual.Data))
+                {
+                    DateTime dataAnterior = DateTime.Parse(movimentoAnterior.Data);
+                    DateTime dataAtual = DateTime.Parse(movimentoAtual.Data);
+
+                    TimeSpan diff = dataAtual - dataAnterior;
+                    string setor = movimentoAnterior.SetorDestino ?? "Sem setor";
+
+                    if (!setorTimeData.ContainsKey(setor))
+                    {
+                        setorTimeData[setor] = new SectorTimeData { Setor = setor, TotalHours = 0, Occurrences = 0 };
+                    }
+
+                    setorTimeData[setor].TotalHours += diff.TotalHours;
+                    setorTimeData[setor].Occurrences++;
+                }
+            }
+        }
+
+        // Retorna a média de horas por setor
+        return setorTimeData.ToDictionary(data => data.Key, data => data.Value.AverageHours());
+    }
+
+    public class SectorTimeData
+    {
+        public string Setor { get; set; }
+        public double TotalHours { get; set; }
+        public int Occurrences { get; set; }
+
+        public double AverageHours()
+        {
+            return Occurrences > 0 ? TotalHours / Occurrences : 0;
+        }
+    }
+    /*GRAFIC VARIABLES AND FUNCTIONS*/
+  
   
   // Nova instância da classe ByTimeColorConfig
   private ByTimeColorConfig colorConfig = new ByTimeColorConfig();
