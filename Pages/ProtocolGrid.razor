@@ -36,12 +36,17 @@
           Mostrar Todos os Protocolos
       </button>
       
+      
+      
       <form id="textForm" style="margin-bottom: 20px">
         <input type="text" id="userInput" @bind="searchTerm" @oninput="FilterByText" name="userInput" placeholder="Número do protocolo ou descrição" class="input-field">
       </form>
+      
+      <MudButton OnClick="OpenModal" Variant="Variant.Filled" Color="Color.Primary" >Gráfico Geral</MudButton>
+      
     </div> 
     
-
+  
     
     
   <div class="miniprotocol-grid">
@@ -67,7 +72,7 @@
     {
         @foreach (var protocol in filteredByDate)
         {
-            <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+          <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
                  title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
                  @onclick="() => ShowProtocolModal(protocol)">
                  <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
@@ -75,6 +80,10 @@
                     <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
                 </div>
             </div>
+        
+        
+        
+           
         }
     }
     
@@ -150,14 +159,12 @@
     {
       foreach (var protocol in protocolsList)
       {
-        <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
-           title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
-           @onclick="() => ShowProtocolModal(protocol)">
-           <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
-          <div class="content">
-              <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
-          </div>
-        </div>
+        <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" >
+              <MudCardContent>
+                  <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+              </MudCardContent>
+              
+          </MudCard>
       }
     }
     
@@ -223,7 +230,7 @@
                               </div>
                               @if (move != selectedProtocol.Moves.Last())
                               {
-                                  <div class="move-separator"></div>
+                                  <MudDivider />
                               }
                           </div>
                         }
@@ -251,30 +258,45 @@
           </div>
       }
       
-   
-
-
-
   </div>
 
   
-      <MudPaper Class="pa-16 ma-2" Elevation="3">
-        <MudButton OnClick="OpenModal" Variant="Variant.Filled" Color="Color.Primary" >Abrir Gráfico</MudButton>
-      </MudPaper>
+      
       
   
     @if(ischartModalVisible == true){
       <div class="modal">
         <div class="modal-content">
+      
           <MudPaper Class="pa-16 ma-2" Elevation="3">
-            <MudChart ChartType="ChartType.Donut" Width="300px" Height="300px" @bind-SelectedIndex="selectedIndex" InputData="@mediasHoras" InputLabels="@setores.ToArray()"></MudChart>
+             <MudChart ChartType="ChartType.Bar" 
+                  ChartSeries="@Series" 
+                  XAxisLabels="@setores.ToArray()" 
+                  Width="100%" 
+                  Height="350px"
+                  SelectedIndexChanged="@OnSelectedIndexChanged">
+                    <CustomGraphics>
+                        <style>
+                            .heavy { font: bold 20px Helvetica; }
+                            .Rrrrr { font: italic 20px Helvetica; fill: rgb(0, 38, 255); }
+                        </style>
+                        <text x=50% y=13% class="heavy">@SelectedSetor</text>
+                        <text x=50% y=21% class="Rrrrr"> Média do setor: @((int)SelectedMediaHoras)</text>
+                        <text x=50% y=30% class="Rrrrr"> Média Geral @((int)mediaGeral)</text>
+                    </CustomGraphics>
+              </MudChart>
+                  
+        
           </MudPaper>
+         
+          
           <MudPaper Class="pa-4 mt-2 d-flex justify-center">
             <MudButton OnClick="CloseModal" Color="Color.Secondary">Fechar</MudButton>
           </MudPaper>
-          </div>
-    </div>
-    }else{Console.WriteLine("Inschatmodal não está visível");}
+          
+        </div>
+      </div>
+    }
     
   
   
@@ -312,22 +334,73 @@
     private double[] mediasHoras = new double[0];
     private bool ischartModalVisible = false;
     private int selectedIndex = -1;
+    private double mediaGeral;
 
-  
+      // Variáveis para mostrar o setor selecionado e sua média de horas
+    private string SelectedSetor = string.Empty;
+    private double SelectedMediaHoras = 0;
+
+    // Lista que contém os dados do gráfico
+    public List<ChartSeries> Series { get; set; } = new List<ChartSeries>();
     
 
     // Função para abrir o modal e preparar os dados do gráfico
    async Task  OpenModal()
     {
-        Console.WriteLine("OpenModal chamado."); // Para verificação
+        
+        Console.WriteLine("Preparando dados do gráfico");
+        await PrepareChartData(protocolsList); // Prepara os dados
+        Console.WriteLine("Dados do gráfico preparados");
+        await CalcularMediaGeral(protocolsList);
         ischartModalVisible = true;
         Console.WriteLine(ischartModalVisible);
-        await PrepareChartData(protocolsList); // Prepara os dados
-        setores = chartData
-        .Select(c => c.Setor.Replace("Recife/Sede - ", string.Empty))
-        .ToList();
-        mediasHoras = chartData.Select(c => c.AverageHours).ToArray();
+        SetChartSeries();
         
+        
+    }
+    
+    async Task CalcularMediaGeral(List<ProtocolData> protocolos)
+    {
+        double totalHoras = 0;
+        int totalProtocolos = 0;
+    
+        foreach (var protocolo in protocolos)
+        {
+            var movimentos = protocolo.Moves;
+    
+            for (int i = 1; i < movimentos.Count; i++) // Começa do segundo movimento
+            {
+                var movimentoAnterior = movimentos[i - 1];
+                var movimentoAtual = movimentos[i];
+    
+                if (!string.IsNullOrEmpty(movimentoAnterior.Data) && !string.IsNullOrEmpty(movimentoAtual.Data))
+                {
+                    DateTime dataAnterior = DateTime.Parse(movimentoAnterior.Data);
+                    DateTime dataAtual = DateTime.Parse(movimentoAtual.Data);
+    
+                    TimeSpan diff = dataAtual - dataAnterior;
+    
+                    totalHoras += diff.TotalHours; // Soma as horas totais
+                    totalProtocolos++; // Conta o número total de protocolos
+                }
+            }
+        }
+    
+        mediaGeral = totalProtocolos > 0 ? totalHoras / totalProtocolos : 0; // Retorna a média geral
+    }
+
+    
+     private void SetChartSeries()
+    {
+        Series.Clear();
+        for (int i = 0; i < setores.Count; i++)
+        {
+            Series.Add(new ChartSeries
+            {
+                Name = setores[i],
+                Data = new double[] { mediasHoras[i] }
+            });
+        }
     }
 
     // Função para fechar o modal
@@ -340,28 +413,41 @@
     // Função que prepara os dados para o gráfico
     async Task PrepareChartData(List<ProtocolData> protocolos)
     {
-        Console.WriteLine($"Protocolos recebidos: {protocolos.Count}");
         var mediaHorasPorSetor = CalcularMediaHorasPorSetor(protocolos);
-        chartData = mediaHorasPorSetor.Select(kvp => new ChartData
-        {
-            Setor = kvp.Key,
-            AverageHours = kvp.Value
-        }).ToList();
+
+        // Ordena os setores e as médias de horas de forma decrescente
+        var orderedData = mediaHorasPorSetor
+            .OrderByDescending(kvp => kvp.Value)
+            .ToList();
+
+        setores = orderedData
+            .Select(kvp => kvp.Key.Replace("Recife/Sede - ", string.Empty))
+            .ToList();
+
+        mediasHoras = orderedData
+            .Select(kvp => kvp.Value)
+            .ToArray();
         
-        Console.WriteLine($"Dados do gráfico preparados: {chartData.Count} setores.");
+        // Prepara os dados para o gráfico
+        Series = new List<ChartSeries>
+        {
+            new ChartSeries
+            {
+                Name = "Média de Horas",
+                Data = mediasHoras
+            }
+        };
     }
-
-    // A sua classe ChartData já definida
-    public class ChartData
+    
+    void OnSelectedIndexChanged(int index)
     {
-        public string? Setor { get; set; }
-        public double AverageHours { get; set; }
+        if (index >= 0 && index < setores.Count)
+        {
+            SelectedSetor = setores[index];
+            SelectedMediaHoras = mediasHoras[index];
+        }
     }
-
-    // A lista que contém os dados do gráfico
-    private List<ChartData> chartData = new List<ChartData>();
-
-    // A função que calcula a média das horas por setor (já implementada)
+    
     public Dictionary<string, double> CalcularMediaHorasPorSetor(List<ProtocolData> protocolos)
     {
         var setorTimeData = new Dictionary<string, SectorTimeData>();
@@ -397,7 +483,19 @@
         // Retorna a média de horas por setor
         return setorTimeData.ToDictionary(data => data.Key, data => data.Value.AverageHours());
     }
+    
+    
+    // Classe ChartData para armazenar informações do gráfico
+    public class ChartData
+    {
+        public string? Setor { get; set; }
+        public double AverageHours { get; set; }
+    }
 
+    // A lista que contém os dados do gráfico
+    private List<ChartData> chartData = new List<ChartData>();
+
+    
     public class SectorTimeData
     {
         public string Setor { get; set; }
@@ -639,9 +737,9 @@
   
   private string TruncateDescription(string description)
     {
-        if (description.Length > 40)
+        if (description.Length > 60)
         {
-            return description.Substring(0, 40) + "..."; // Limita a 40 caracteres e adiciona "..."
+            return description.Substring(0, 60) + "..."; // Limita a 40 caracteres e adiciona "..."
         }
         return description;
     }

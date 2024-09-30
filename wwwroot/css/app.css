@@ -1,8 +1,5 @@
 
-.content {
-  
-  text-transform: lowercase;
-}
+
 
 .valid.modified:not([type=checkbox]) {
   outline: 1px solid #26b050;
@@ -245,16 +242,20 @@ display: block;
   }
 }
 
-
+.lowercase-text {
+  text-transform: lowercase; /* Transforma todas as letras em minúsculas */
+}
 
 .protocol-card {
+  text-transform: lowercase;
   position: relative;
+  text-overflow: ellipsis;
   display: flex; 
-  justify-content: center; 
-  align-items: center; 
+  justify-content:left; 
+  align-items:start; 
   flex-direction: column; 
-  width: 120px; 
-  height: 120px; 
+  width: 180px; 
+  height: 160px; 
   margin: 5px; 
   border-radius: 10px; 
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 

@@ -44,10 +44,69 @@
 <MudForm>
 </MudForm>
 
- 
+<div>
+    <MudChart ChartType="ChartType.Bar" 
+              ChartSeries="@Series" 
+              @bind-SelectedIndex="CurrentIndex" 
+              XAxisLabels="@XAxisLabels" 
+              Width="100%" 
+              Height="350px"></MudChart>
+</div>
+<MudText Typo="Typo.h6">Selected portion of the chart: @SelectedCountry</MudText>
 
-
+<!--
+<div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
+                 title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
+                 @onclick="() => ShowProtocolModal(protocol)">
+                 <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
+                <div class="content">
+                    <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
+                </div>
+      </div>
+*/
+-->
 @code {
+/*TESTS*/
+ private int currentIndex = -1; // default value cannot be 0
+    private string SelectedCountry { get; set; } = "None";
+
+    public List<ChartSeries> Series = new List<ChartSeries>()
+    {
+        new ChartSeries() { Name = "United States", Data = new double[] { 40, 20, 25, 27, 46, 60, 48, 80, 15 } },
+        new ChartSeries() { Name = "Germany", Data = new double[] { 19, 24, 35, 13, 28, 15, 13, 16, 31 } },
+        new ChartSeries() { Name = "Sweden", Data = new double[] { 8, 6, 11, 13, 4, 16, 10, 16, 18 } },
+    };
+
+    public string[] XAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
+
+    private int CurrentIndex
+    {
+        get => currentIndex;
+        set
+        {
+            currentIndex = value;
+            UpdateSelectedCountry();
+        }
+    }
+
+    private void UpdateSelectedCountry()
+    {
+        if (CurrentIndex >= 0 && CurrentIndex < Series.Count)
+        {
+            var selectedSeries = Series[CurrentIndex];
+            SelectedCountry = $"{selectedSeries.Name}: {string.Join(", ", selectedSeries.Data)}";
+        }
+        else
+        {
+            SelectedCountry = "None";
+        }
+    }
+    
+     
+/*TESTS*/
+
+
+
   private DateTime expectativaMovimentacao = DateTime.Now.AddDays(3);
   private DateTime dataAtual = DateTime.Now;
   private bool ProtocolRequestStatus = true;
@@ -165,6 +224,9 @@
         }
     }
     /*GRAFIC VARIABLES AND FUNCTIONS*/
+  
+  
+  
   
   
   // Nova instância da classe ByTimeColorConfig
