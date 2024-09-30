@@ -361,19 +361,20 @@ namespace MyBlazorPwa
     public string Sigiloso { get; set; } = "Vazio";
   }
   
-  public class ByTimeColorConfig{
-    /*TIME*/
-    public int? ConfigExpectativaMovimentacao  { get; set; } = 0 ;
-    public int? ConfigVerde  { get; set; } = 0 ;
-    public int? ConfigAmarelo  { get; set; } = 0 ;
-    public int? ConfigVermelho  { get; set; } = 0 ;
-    
-    /*COLORS*/
-    public string ColorVerde { get; set; } = "green";
-    public string ColorAmarelo { get; set; } = "yellow";
-    public string ColorVermelho { get; set; } = "red";
-    public string ColorPreto { get; set; } = "black";
-  }
+  public class ByTimeColorConfig
+    {
+        /*TIME*/
+        public int? ConfigExpectativaMovimentacao  { get; set; } = 0;
+        public int? ConfigVerde  { get; set; } = 0;
+        public int? ConfigAmarelo  { get; set; } = 0;
+        public int? ConfigVermelho  { get; set; } = 0;
+
+        /*COLORS*/
+        public string ColorVerde { get; set; } = $"color:{MudBlazor.Colors.Green.Lighten2};";
+        public string ColorAmarelo { get; set; } = $"color:{MudBlazor.Colors.Yellow.Lighten3};";
+        public string ColorVermelho { get; set; } = $"color:{MudBlazor.Colors.Red.Lighten1};";
+        public string ColorPreto { get; set; } = $"color:{MudBlazor.Colors.Shades.Black};";
+    }
 }
 
 

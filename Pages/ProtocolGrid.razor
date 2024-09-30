@@ -6,7 +6,13 @@
 <div>
     
   
-  <div> 
+  
+    
+  
+    
+    
+  <div class="miniprotocol-grid">
+    <div> 
       
       @foreach (var phase in phases)
       {
@@ -42,28 +48,19 @@
         <input type="text" id="userInput" @bind="searchTerm" @oninput="FilterByText" name="userInput" placeholder="Número do protocolo ou descrição" class="input-field">
       </form>
       
-      <MudButton OnClick="OpenModal" Variant="Variant.Filled" Color="Color.Primary" >Gráfico Geral</MudButton>
+      
       
     </div> 
-    
-  
-    
-    
-  <div class="miniprotocol-grid">
-    
     
     @if (filteredBySearch != null && filteredBySearch.Any())
   {
       foreach (var protocol in filteredBySearch)
       {
-          <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
-               title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
-               @onclick="() => ShowProtocolModal(protocol)">
-               
-              <div class="content">
-                  <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
-              </div>
-          </div>
+          <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+        <MudCardContent>
+            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+        </MudCardContent>
+    </MudCard>
       }
   }
   
@@ -72,14 +69,11 @@
     {
         @foreach (var protocol in filteredByDate)
         {
-          <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
-                 title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
-                 @onclick="() => ShowProtocolModal(protocol)">
-                 <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
-                <div class="content">
-                    <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
-                </div>
-            </div>
+          <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+        <MudCardContent>
+            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+        </MudCardContent>
+    </MudCard>
         
         
         
@@ -101,13 +95,11 @@
                   {
                       foreach (var protocol in group)
                       {
-                          <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
-                               title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
-                               @onclick="() => ShowProtocolModal(protocol)">
-                              <div class="content">
-                                  <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
-                              </div>
-                          </div>
+                        <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+                            <MudCardContent>
+                                <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                            </MudCardContent>
+                        </MudCard>
                       }
                   }
                   else
@@ -124,13 +116,11 @@
           <div class="sem-responsavel-group">
               @foreach (var protocol in protocolsWithoutResponsable)
               {
-                  <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
-                       title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
-                       @onclick="() => ShowProtocolModal(protocol)">
-                      <div class="content">
-                          <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
-                      </div>
-                  </div>
+                  <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+        <MudCardContent>
+            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+        </MudCardContent>
+    </MudCard>
               }
           </div>
       }
@@ -144,28 +134,30 @@
     {
         foreach (var protocol in adoptedProtocols)
         {
-            <div class="protocol-card @(GetColorClass(protocol.GetDataUltimoMovimento()))"
-                 title="Descrição: @protocol.Header.Descricao | Atualmente em: @protocol.GetSetorUltimoMovimento()"
-                 @onclick="() => ShowProtocolModal(protocol)">
-                 <div class="phase-label @(GetPhaseClass(protocol.Header.Assunto))"></div>
-                <div class="content">
-                    <p class="description">@TruncateDescription(protocol.Header.Descricao)</p>
-                </div>
-            </div>
+            <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+        <MudCardContent>
+            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+        </MudCardContent>
+    </MudCard>
         }
     }
    
     @if( currentFilter == FilterMode.None && protocolsList != null && protocolsList.Any())
     {
-      foreach (var protocol in protocolsList)
-      {
-        <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" >
-              <MudCardContent>
-                  <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
-              </MudCardContent>
-              
-          </MudCard>
-      }
+        
+            <MudPaper Height="37px" Width="100%" Style="background-color: transparent; border: none;">
+                <MudButton OnClick="OpenModal" Variant="Variant.Filled" Color="Color.Primary">Gráfico Geral</MudButton>
+            </MudPaper>
+        
+        @foreach (var protocol in protocolsList)
+        {
+            <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+                <MudCardContent>
+                    <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                </MudCardContent>
+            </MudCard>
+        }
+        
     }
     
     @if (miniProtocolsList != null && miniProtocolsList.Any() && currentFilter == FilterMode.None)
@@ -279,10 +271,13 @@
                         <style>
                             .heavy { font: bold 20px Helvetica; }
                             .Rrrrr { font: italic 20px Helvetica; fill: rgb(0, 38, 255); }
+                            .black{font: italic 20px Helvetica; fill: rgb(4, 0, 56);}
                         </style>
                         <text x=50% y=13% class="heavy">@SelectedSetor</text>
                         <text x=50% y=21% class="Rrrrr"> Média do setor: @((int)SelectedMediaHoras)</text>
                         <text x=50% y=30% class="Rrrrr"> Média Geral @((int)mediaGeral)</text>
+                        <text x=4% y=68% class="black"> ---------------------------------------------------------------------------------------</text>
+
                     </CustomGraphics>
               </MudChart>
                   
@@ -846,65 +841,64 @@
     return diasUteis;
 }
 
-  private string GetColorClass(string dataUltimoMovimento)
-{
-    if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
+    private string GetColorClass(string dataUltimoMovimento)
     {
-        // Data atual
-        var dataAtual = DateTime.Now;
-        
-        // Expectativa de movimentação
-        var expectativaMovimentacao = Config.ConfigExpectativaMovimentacao ?? 0;
-
-        // Lista de feriados 2024
-        List<DateTime> feriados = new List<DateTime>
+        if (DateTime.TryParse(dataUltimoMovimento, out var lastMoveDate))
         {
-            new DateTime(2024, 1, 1), new DateTime(2024, 2, 12), new DateTime(2024, 2, 13), 
-            new DateTime(2024, 2, 14), new DateTime(2024, 3, 29), new DateTime(2024, 4, 21), 
-            new DateTime(2024, 5, 1), new DateTime(2024, 5, 30), new DateTime(2024, 9, 7), 
-            new DateTime(2024, 10, 12), new DateTime(2024, 11, 2), new DateTime(2024, 11, 15), 
-            new DateTime(2024, 12, 25)
-        };
+            // Data atual
+            var dataAtual = DateTime.Now;
+            
+            // Expectativa de movimentação
+            var expectativaMovimentacao = Config.ConfigExpectativaMovimentacao ?? 0;
 
-        // Calcula a diferença em dias úteis
-        var diasUteis = GetDiasUteis(lastMoveDate, dataAtual, feriados);
-
-        // Verifica se a diferença está dentro da expectativa
-        if (diasUteis <= expectativaMovimentacao)
-        {
-            return Config.ColorVerde; // Dentro do prazo, retorna verde
-        }
-        else
-        {
-            // Diferença acima da expectativa, inicia o cálculo
-            var sobra = diasUteis - expectativaMovimentacao;
-
-            if (sobra > 0)
+            // Lista de feriados 2024
+            List<DateTime> feriados = new List<DateTime>
             {
-                // Subtrai a configuração amarelo
-                sobra -= Config.ConfigAmarelo ?? 0;
+                new DateTime(2024, 1, 1), new DateTime(2024, 2, 12), new DateTime(2024, 2, 13), 
+                new DateTime(2024, 2, 14), new DateTime(2024, 3, 29), new DateTime(2024, 4, 21), 
+                new DateTime(2024, 5, 1), new DateTime(2024, 5, 30), new DateTime(2024, 9, 7), 
+                new DateTime(2024, 10, 12), new DateTime(2024, 11, 2), new DateTime(2024, 11, 15), 
+                new DateTime(2024, 12, 25)
+            };
+
+            // Calcula a diferença em dias úteis
+            var diasUteis = GetDiasUteis(lastMoveDate, dataAtual, feriados);
+
+            // Verifica se a diferença está dentro da expectativa
+            if (diasUteis <= expectativaMovimentacao)
+            {
+                return $"background-color:{Config.ColorVerde};"; // Dentro do prazo, retorna verde
+            }
+            else
+            {
+                // Diferença acima da expectativa, inicia o cálculo
+                var sobra = diasUteis - expectativaMovimentacao;
 
                 if (sobra > 0)
                 {
-                    // Subtrai a configuração vermelho
-                    sobra -= Config.ConfigVermelho ?? 0;
+                    // Subtrai a configuração amarelo
+                    sobra -= Config.ConfigAmarelo ?? 0;
 
                     if (sobra > 0)
                     {
-                        return Config.ColorPreto; // Retorna preto se ainda sobrar
+                        // Subtrai a configuração vermelho
+                        sobra -= Config.ConfigVermelho ?? 0;
+
+                        if (sobra > 0)
+                        {
+                            return $"background-color:{Config.ColorPreto};color:white;"; // Retorna preto se ainda sobrar
+                        }
+
+                        return $"background-color:{Config.ColorVermelho};"; // Retorna vermelho se sobrar
                     }
 
-                    return Config.ColorVermelho; // Retorna vermelho se sobrar
+                    return $"background-color:{Config.ColorAmarelo};"; // Retorna amarelo se sobrar
                 }
-
-                return Config.ColorAmarelo; // Retorna amarelo se sobrar
             }
         }
+
+        return string.Empty; // Retorna vazio se a data não for válida
     }
-
-    return string.Empty; // Retorna vazio se a data não for válida
-}
-
   protected override async Task OnInitializedAsync()
   {
       await LoadBlacklistFromLocalStorage();
