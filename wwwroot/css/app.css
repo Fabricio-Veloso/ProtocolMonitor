@@ -1,8 +1,5 @@
 
-.content {
-  
-  text-transform: lowercase;
-}
+
 
 .valid.modified:not([type=checkbox]) {
   outline: 1px solid #26b050;
@@ -152,6 +149,7 @@ color: black;
 padding: 12px 16px;
 text-decoration: none;
 display: block;
+
 }
 
 .dropdown-content a:hover {
@@ -168,7 +166,7 @@ display: block;
   flex-wrap: wrap; 
   justify-content: space-around; 
   padding: 10px;
-  background-color: #4A89D3; 
+  background-color: #155bac; 
   height:fit-content;
   overflow-y: auto;
   width: 100%; /* Garante que a div ocupe toda a largura */
@@ -245,26 +243,32 @@ display: block;
   }
 }
 
-
+.lowercase-text {
+  text-transform: lowercase; /* Transforma todas as letras em minúsculas */
+}
 
 .protocol-card {
+  text-transform: lowercase;
   position: relative;
   display: flex; 
-  justify-content: center; 
-  align-items: center; 
+  justify-content:left; 
+  align-items:start; 
   flex-direction: column; 
-  width: 120px; 
-  height: 120px; 
+  width: 220px; 
+  height: 130px; 
   margin: 5px; 
-  border-radius: 10px; 
+  border-radius: 20px; 
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
   cursor: pointer;
   transition: transform 0.3s ease, background-color 0.3s ease; 
-  color: white; 
-  font-size: 0.9rem; 
+  color: rgb(0, 0, 0); 
+  font-size: 1.2rem; 
   overflow: hidden; 
   padding: 10px; /* Aumenta o padding do cartão */
   box-sizing: border-box; /* Inclui o padding nas dimensões totais */
+  font-weight: 300;
+  
+  
 }
 
 
