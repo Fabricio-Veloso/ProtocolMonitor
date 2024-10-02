@@ -1,9 +1,10 @@
 @using MyBlazorPwa
 @inject IJSRuntime JSRuntime
 @using MudBlazor
+@inject ISnackbar Snackbar
 
 
-<div>
+
     
   
   
@@ -12,45 +13,57 @@
     
     
   <div class="miniprotocol-grid">
-    <div> 
-      
-      @foreach (var phase in phases)
-      {
-         var displayPhase = phase.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS - CREA-PE - 0", "").Trim();
-          <button class="button"
-                  style="background-color: @GetPhaseColor(displayPhase); @GetActiveButtonStyle(phase)"
-                  @onclick="() => SetActivePhase(phase)">
-              Filtrar por @displayPhase
-          </button>
-      }
-      
-      <button class="button" 
-              style="@GetActiveButtonStyle("ByDate")"
-              @onclick="() => FilterByDate()">
-          Filtrar por Data
-      </button>
-      
-      <button class="button" 
-              style="@GetActiveButtonStyle("Adopted")"
-              @onclick="() => ShowAdoptedProtocols()">
-          Mostrar Protocolos sob sua responsabilidade
-      </button>
-      
-      <button class="button" 
-              style="@GetActiveButtonStyle("All")"
-              @onclick="() => ShowAllProtocols()">
-          Mostrar Todos os Protocolos
-      </button>
-      
-      
-      
-      <form id="textForm" style="margin-bottom: 20px">
-        <input type="text" id="userInput" @bind="searchTerm" @oninput="FilterByText" name="userInput" placeholder="Número do protocolo ou descrição" class="input-field">
+    
+    <div>
+        <MudChipSet T="string" Class="mud-typography" CheckMark SelectionMode="SelectionMode.ToggleSelection">
+            @foreach (var phase in phases)
+            {
+                var displayPhase = phase.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS - CREA-PE - 0", "").Trim();
+                <MudChip Variant="Variant.Filled" 
+                        OnClick="@(() => SetActivePhase(phase))" 
+                        Style="@GetPhaseColor(displayPhase)" 
+                        Color="Color.Warning" 
+                        Value="@phase">
+                    @displayPhase
+                </MudChip>
+            }
+
+                <MudChip Variant="Variant.Filled" 
+                    OnClick="() => FilterByDate()" 
+                    Style="@GetActiveButtonStyle(FilterByDateValue)" 
+                    Color="Color.Secondary" 
+                    Value="@FilterByDateValue">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" />
+                Por Data
+                </MudChip>
+
+                <MudChip Variant="Variant.Filled" 
+                        OnClick="() => ShowAdoptedProtocols()" 
+                        Style="@GetActiveButtonStyle(ShowAdoptedValue)" 
+                        Color="Color.Secondary" 
+                        Value="@ShowAdoptedValue">
+                    <MudIcon Icon="@Icons.Material.Filled.Bookmark" />
+                    Marcados por você
+                </MudChip>
+
+                <MudChip Variant="Variant.Filled" 
+                        OnClick="() => ShowAllProtocols()" 
+                        Style="@GetActiveButtonStyle(ShowAllValue)" 
+                        Color="Color.Secondary" 
+                        Value="@ShowAllValue">
+                    <MudIcon Icon="@Icons.Material.Filled.List" />
+                    Todos 
+                </MudChip>
+
+        </MudChipSet>
+        <form id="textForm" style="margin-bottom: 20px" wi>
+        <input type="text" id="userInput" @bind="searchTerm" @oninput="FilterByText" name="userInput" placeholder="Pesquisar" class="input-field">
       </form>
+    </div>
+
+    
       
-      
-      
-    </div> 
+    
     
     @if (filteredBySearch != null && filteredBySearch.Any())
   {
@@ -64,7 +77,6 @@
       }
   }
   
-    
     @if (currentFilter == FilterMode.ByDate && filteredByDate != null && filteredByDate.Any())
     {
         @foreach (var protocol in filteredByDate)
@@ -83,12 +95,8 @@
     
     @if (currentFilter == FilterMode.ByPhase && (protocolsWithResponsable?.Any() == true || protocolsWithoutResponsable?.Any() == true))
     {
-      
-        <MudPaper Height="37px" Width="100%" Style="background-color: transparent; border: none;">
-          <MudButton OnClick="GerarGraficoFase" Variant="Variant.Filled" Color="Color.Primary">Gráfico da fase</MudButton>
-        </MudPaper>
-      
-      @if (groupedProtocols != null && groupedProtocols.Any())
+        
+        @if (groupedProtocols != null && groupedProtocols.Any())
       {
           foreach (var group in groupedProtocols)
           {
@@ -115,23 +123,25 @@
             </div>
           }
       }
-      
+     
+     
       @if (protocolsWithoutResponsable != null && protocolsWithoutResponsable.Any())
       {
           <div class="sem-responsavel-group">
               @foreach (var protocol in protocolsWithoutResponsable)
               {
                   <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
-        <MudCardContent>
-            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
-        </MudCardContent>
-    </MudCard>
+                        <MudCardContent>
+                            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                        </MudCardContent>
+                    </MudCard>
               }
           </div>
       }
+      
      
   }
-
+  
     @if (currentFilter == FilterMode.Adopted && adoptedProtocols != null && adoptedProtocols.Any())
     {
         foreach (var protocol in adoptedProtocols)
@@ -147,100 +157,100 @@
     @if( currentFilter == FilterMode.None && protocolsList != null && protocolsList.Any())
     {
         
-      <MudPaper Height="37px" Width="100%" Style="background-color: transparent; border: none;">
-        <MudButton OnClick="OpenChartModal" Variant="Variant.Filled" Color="Color.Primary">Gráfico Geral</MudButton>
-      </MudPaper>
+           <MudPaper Height="37px" Width="100%" Style="background-color: transparent; border: none;">
+                <MudButton OnClick="OpenModal" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.BarChart">                
+                Geral
+                </MudButton>
+            </MudPaper>
         
-      @foreach (var protocol in protocolsList)
-      {
-        <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
-          <MudCardContent>
-            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
-          </MudCardContent>
-        </MudCard>
-      }
-        
-    }
+        <div>
+        @foreach (var protocol in protocolsList)
+        {
+            <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+                <MudCardContent>
+                    <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                </MudCardContent>
+            </MudCard>
+        }
+        </div>
+    }   
     
     @if (miniProtocolsList != null && miniProtocolsList.Any() && currentFilter == FilterMode.None)
-    {
+  {
       foreach (var miniProtocol in miniProtocolsList.Where(p => !IsInBlacklist(p.Numero)))
       {
-        <div class="miniprotocol-card @(GetColorClass(miniProtocol.DataUltimoMovimento))"
-           title="Descrição: @miniProtocol.Descricao | Atualmente em: @miniProtocol.LocalizacaoAtual"
-           @onclick="() => ShowMiniProtocolModal(miniProtocol)">
-          <div class="content">
-              <div class="loader"></div>
-              <p class="description">@TruncateDescription(miniProtocol.Descricao)</p>
+          <div class="miniprotocol-card @(GetColorClass(miniProtocol.DataUltimoMovimento))"
+               title="Descrição: @miniProtocol.Descricao | Atualmente em: @miniProtocol.LocalizacaoAtual"
+               @onclick="() => ShowMiniProtocolModal(miniProtocol)">
+              <div class="content">
+                  <div class="loader"></div>
+                  <p class="description">@TruncateDescription(miniProtocol.Descricao)</p>
+              </div>
           </div>
-        </div>
       }
-    }
+  }
   
-   
+    <!-- Modal do protocolo completo -->
     @if (isProtocolModalVisible && selectedProtocol != null)
     {
-      <div class="modal">
-          <div class="modal-content">
-              <span class="close-button" @onclick="HideProtocolModal">&times;</span>
-              
-              <div>
-                  <button class="button"  @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Apagar protocolo</button>
-                  @if (IsAdopted(selectedProtocol.Header.Numero))
-                  {
-                    <button class="button" @onclick="() => RemoveFromAdoptedProtocols(selectedProtocol.Header.Numero)">Retirar da lista de protocolos sob sua responsabilidade</button>
-                  }
-                  else
-                  {
-                    <button class="button" @onclick="() => AddToAdoptedProtocols(selectedProtocol.Header.Numero)">Adotar</button>
-                  }
-              </div>
-              
-              <h3>Protocolo: @selectedProtocol.Header?.Numero</h3>
-                  <p><strong>Interessado:</strong> @selectedProtocol.Header?.Interessado</p>
-                  <p><strong>Solicitante:</strong> @selectedProtocol.Header?.Solicitante</p>
-                  <p><strong>Inspetoria:</strong> @selectedProtocol.Header?.Inspetoria</p>
-                  <p><strong>Assunto:</strong> @selectedProtocol.Header?.Assunto</p>
-                  <p><strong>Origem:</strong> @selectedProtocol.Header?.Origem</p>
-                  <p><strong>Situação:</strong> @selectedProtocol.Header?.Situacao</p>
-                  <p><strong>Destino:</strong> @selectedProtocol.Header?.Destino</p>
-                  <p><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso?</p>
-                  <p><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao?</p>
-                  <p><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</p>
-                  
-                  <h4>Movimentações:</h4>
-      @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
-      {
-        bool isLeft = true;  // Usado para alternar entre esquerda e direita
-    
-        <MudTimeline>
-          @foreach (var move in selectedProtocol.Moves.AsEnumerable().Reverse())
-          {
+        <div class="modal">
+            <div class="modal-content">
+                <span class="close-button" @onclick="HideProtocolModal">&times;</span>
+                <h3>Protocolo: @selectedProtocol.Header?.Numero</h3>
+                    <p><strong>Interessado:</strong> @selectedProtocol.Header?.Interessado</p>
+                    <p><strong>Solicitante:</strong> @selectedProtocol.Header?.Solicitante</p>
+                    <p><strong>Inspetoria:</strong> @selectedProtocol.Header?.Inspetoria</p>
+                    <p><strong>Assunto:</strong> @selectedProtocol.Header?.Assunto</p>
+                    <p><strong>Origem:</strong> @selectedProtocol.Header?.Origem</p>
+                    <p><strong>Situação:</strong> @selectedProtocol.Header?.Situacao</p>
+                    <p><strong>Destino:</strong> @selectedProtocol.Header?.Destino</p>
+                    <p><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso?</p>
+                    <p><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao?</p>
+                    <p><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</p>
+                    <div>
+                      <button class="button"  @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Remover Da visualisação</button>
+                      @if (IsAdopted(selectedProtocol.Header.Numero))
+                      {
+                          <button class="button" @onclick="() => RemoveFromAdoptedProtocols(selectedProtocol.Header.Numero)">Desmarcar</button>
+                      }
+                      else
+                      {
+                          <button class="button" @onclick="() => AddToAdoptedProtocols(selectedProtocol.Header.Numero)">Marcar Para Mim</button>
+                      }
+                    </div>
+                    <h4>Movimentações:</h4>
+@if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
+{
+    bool isLeft = true;  // Usado para alternar entre esquerda e direita
+
+    <MudTimeline>
+        @foreach (var move in selectedProtocol.Moves.AsEnumerable().Reverse())
+        {
             <MudTimelineItem Color="Color.Info" Size="Size.Small">
                 <ItemOpposite>
-                  @if (DateTime.TryParse(move.Data, out var dateValue))
-                  {
-                    @if (DateTime.TryParse(move.Hora, out var timeValue))
+                    @if (DateTime.TryParse(move.Data, out var dateValue))
                     {
-                      <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
-                        @dateValue.ToShortDateString() - @timeValue.ToString("HH:mm")
-                      </MudText>
+                        @if (DateTime.TryParse(move.Hora, out var timeValue))
+                        {
+                            <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
+                                @dateValue.ToShortDateString() - @timeValue.ToString("HH:mm")
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
+                                @dateValue.ToShortDateString() - Hora inválida
+                            </MudText>
+                        }
                     }
                     else
                     {
-                      <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
-                        @dateValue.ToShortDateString() - Hora inválida
-                      </MudText>
+                        <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
+                            Data inválida
+                        </MudText>
                     }
-                  }
-                  else
-                  {
-                    <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
-                      Data inválida
-                    </MudText>
-                  }
                 </ItemOpposite>
-                  <ItemContent>
+                <ItemContent>
                     <MudText Typo="Typo.h6" GutterBottom="true">Passo: @move.Passo</MudText>
                     <MudText><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</MudText>
                     <MudText><strong>Usuário de Destino:</strong> @move.UsuarioDestino</MudText>
@@ -250,23 +260,23 @@
                     <MudText><strong>Sigiloso:</strong> @(string.IsNullOrEmpty(move.Sigiloso) ? "Não" : move.Sigiloso == "true" ? "Sim" : "Não")</MudText>
                 </ItemContent>
             </MudTimelineItem>
-  
-              @* Alterna entre esquerda e direita *@
-              isLeft = !isLeft;
-          }
-        </MudTimeline>
-            }
-            else
-            {
-                <p>Nenhuma movimentação encontrada.</p>
-            }
-  
-  
-  
-  
-              </div>
+
+            @* Alterna entre esquerda e direita *@
+            isLeft = !isLeft;
+        }
+    </MudTimeline>
+}
+else
+{
+    <p>Nenhuma movimentação encontrada.</p>
+}
+
+
+
+
+            </div>
         </div>
-      }
+    }
   
     @if (isMiniProtocolModalVisible && selectedMiniProtocol != null)
       {
@@ -282,76 +292,45 @@
               </div>
           </div>
       }
-      
-  </div>
-
-  
-      
-      
-  
+ 
     @if(ischartModalVisible == true){
       <div class="modal">
         <div class="modal-content">
+      
           <MudPaper Class="pa-16 ma-2" Elevation="3">
-           <MudChart ChartType="ChartType.Bar" 
-              ChartSeries="@Series" 
-              XAxisLabels="@setores.ToArray()" 
-              Width="100%" 
-              Height="350px"
-              SelectedIndexChanged="@OnSelectedIndexChanged">
-              <CustomGraphics>
-                <style>
-                  .heavy { font: bold 20px Helvetica; }
-                  .Rrrrr { font: italic 20px Helvetica; fill: rgb(0, 38, 255); }
-                  .black{font: italic 20px Helvetica; fill: rgb(4, 0, 56);}
-                </style>
-                <text x=50% y=13% class="heavy">@SelectedSetor</text>
-                <text x=50% y=21% class="Rrrrr"> Média do setor: @((int)SelectedMediaHoras)</text>
-                <text x=50% y=30% class="Rrrrr"> Média Geral @((int)mediaGeral)</text>
-                
-              </CustomGraphics>
-            </MudChart>
+             <MudChart ChartType="ChartType.Bar" 
+                  ChartSeries="@Series" 
+                  XAxisLabels="@setores.ToArray()" 
+                  Width="100%" 
+                  Height="350px"
+                  SelectedIndexChanged="@OnSelectedIndexChanged">
+                    <CustomGraphics>
+                        <style>
+                            .heavy { font: bold 20px Helvetica; }
+                            .Rrrrr { font: italic 20px Helvetica; fill: rgb(0, 38, 255); }
+                            .black{font: italic 20px Helvetica; fill: rgb(4, 0, 56);}
+                        </style>
+                        <text x=50% y=13% class="heavy">@SelectedSetor</text>
+                        <text x=50% y=21% class="Rrrrr"> Média do setor: @((int)SelectedMediaHoras)</text>
+                        <text x=50% y=30% class="Rrrrr"> Média Geral @((int)mediaGeral)</text>
+                        <text x=4% y=68% class="black"> ---------------------------------------------------------------------------------------</text>
+
+                    </CustomGraphics>
+              </MudChart>
+                  
+        
           </MudPaper>
          
           
           <MudPaper Class="pa-4 mt-2 d-flex justify-center">
-            <MudButton OnClick="CloseChartModal" Color="Color.Secondary">Fechar</MudButton>
+            <MudButton OnClick="CloseModal" Color="Color.Secondary">Fechar</MudButton>
           </MudPaper>
           
         </div>
       </div>
     }
     
-    @if(isChartByPhaseModalVisible == true){
-      <div class="modal">
-        <div class="modal-content">
-           <MudPaper Class="pa-16 ma-2" Elevation="3">
-              <MudChart ChartType="ChartType.Bar" 
-                ChartSeries="@Series" 
-                XAxisLabels="@setores.ToArray()" 
-                Width="100%" 
-                Height="350px"
-                SelectedIndexChanged="@OnSelectedIndexChanged">
-                <CustomGraphics>
-                  <style>
-                    .heavy { font: bold 20px Helvetica; }
-                    .Rrrrr { font: italic 20px Helvetica; fill: rgb(0, 38, 255); }
-                    .black{font: italic 20px Helvetica; fill: rgb(4, 0, 56);}
-                  </style>
-                  <text x=50% y=13% class="heavy">@SelectedSetor</text>
-                  <text x=50% y=21% class="Rrrrr"> Média do setor: @((int)SelectedMediaHoras)</text>
-                  <text x=50% y=30% class="Rrrrr"> Média Geral: @((int)mediaGeral)</text>
-                  <text x=4% y=68% class="black"> ---------------------------------------------------------------------------------------</text>
-                </CustomGraphics>
-              </MudChart>
-            </MudPaper>
-      
-          <MudPaper Class="pa-4 mt-2 d-flex justify-center">
-                <MudButton OnClick="CloseByPhaseChartModal" Color="Color.Secondary">Fechar</MudButton>
-          </MudPaper>
-        </div>
-      </div>
-    }
+  
   
 </div>
 
@@ -388,8 +367,8 @@
     private bool ischartModalVisible = false;
     private int selectedIndex = -1;
     private double mediaGeral;
-    private bool isChartByPhaseModalVisible = false;
-    // Variáveis para mostrar o setor selecionado e sua média de horas
+
+      // Variáveis para mostrar o setor selecionado e sua média de horas
     private string SelectedSetor = string.Empty;
     private double SelectedMediaHoras = 0;
 
@@ -398,7 +377,7 @@
     
 
     // Função para abrir o modal e preparar os dados do gráfico
-   async Task  OpenChartModal()
+   async Task  OpenModal()
     {
         
         Console.WriteLine("Preparando dados do gráfico");
@@ -408,6 +387,8 @@
         ischartModalVisible = true;
         Console.WriteLine(ischartModalVisible);
         SetChartSeries();
+        
+        
     }
     
     async Task CalcularMediaGeral(List<ProtocolData> protocolos)
@@ -439,11 +420,9 @@
     
         mediaGeral = totalProtocolos > 0 ? totalHoras / totalProtocolos : 0; // Retorna a média geral
     }
+
     
-    
-        
-    
-    private void SetChartSeries()
+     private void SetChartSeries()
     {
         Series.Clear();
         for (int i = 0; i < setores.Count; i++)
@@ -457,15 +436,9 @@
     }
 
     // Função para fechar o modal
-    void CloseChartModal()
+    void CloseModal()
     {
         ischartModalVisible = false;
-        
-    }
-    
-    void CloseByPhaseChartModal()
-    {
-        isChartByPhaseModalVisible = false;
         
     }
 
@@ -496,137 +469,6 @@
                 Data = mediasHoras
             }
         };
-    }
-    
-   public (double mediaGeral, List<ChartSeries> series, List<string> setores) CalcularMediasPorFase(string fase)
-{
-    if (string.IsNullOrEmpty(fase))
-    {
-        throw new ArgumentNullException(nameof(fase), "A fase fornecida está nula ou vazia.");
-    }
-
-    Console.WriteLine($"Iniciando cálculo das médias para a fase: {fase}");
-
-    // Verifique se há protocolos na fase atual
-    if (currentFilter == FilterMode.ByPhase && protocolsInPhase != null)
-    {
-        var protocolos = protocolsInPhase;
-        Console.WriteLine($"Número de protocolos encontrados para a fase '{fase}': {protocolos.Count()}");
-
-        var setorTimeData = new Dictionary<string, SectorTimeData>();
-
-        foreach (var protocolo in protocolos)
-        {
-            var movimentos = protocolo.Moves;
-            Console.WriteLine($"Processando protocolo: {protocolo.Header.Numero}");
-
-            for (int i = 1; i < movimentos.Count; i++)
-            {
-                var movimentoAnterior = movimentos[i - 1];
-                var movimentoAtual = movimentos[i];
-
-                // Verifique se as datas estão disponíveis
-                if (!string.IsNullOrEmpty(movimentoAnterior.Data) && !string.IsNullOrEmpty(movimentoAtual.Data))
-                {
-                    DateTime dataAnterior = DateTime.Parse(movimentoAnterior.Data);
-                    DateTime dataAtual = DateTime.Parse(movimentoAtual.Data);
-                    TimeSpan diff = dataAtual - dataAnterior;
-                    string setor = movimentoAnterior.SetorDestino ?? "Sem setor";
-
-                    Console.WriteLine($"Movimento de '{setor}' | Anterior: {dataAnterior}, Atual: {dataAtual}, Diferença: {diff.TotalHours} horas");
-
-                    // Atualizar ou adicionar dados do setor
-                    if (!setorTimeData.ContainsKey(setor))
-                    {
-                        setorTimeData[setor] = new SectorTimeData { Setor = setor, TotalHours = 0, Occurrences = 0 };
-                    }
-
-                    // Acumular horas e ocorrências
-                    setorTimeData[setor].TotalHours += diff.TotalHours;
-                    setorTimeData[setor].Occurrences++;
-                }
-                else
-                {
-                    Console.WriteLine($"Dados de movimento insuficientes para protocolo: {protocolo.Header.Numero} | Movimento anterior: {movimentoAnterior.Data}, Movimento atual: {movimentoAtual.Data}");
-                }
-            }
-        }
-
-        // Preparar dados para o gráfico
-        List<double> mediasPorSetor = new List<double>();
-        List<string> setores = new List<string>();
-        double totalHoras = 0;
-        int totalOcorrencias = 0;
-
-        foreach (var setorData in setorTimeData.Values)
-        {
-            // Calcular média e acumular total
-            if (setorData.Occurrences > 0)
-            {
-                double mediaSetor = setorData.AverageHours();
-                mediasPorSetor.Add(mediaSetor);
-                setores.Add(setorData.Setor);
-
-                totalHoras += setorData.TotalHours;
-                totalOcorrencias += setorData.Occurrences;
-
-                Console.WriteLine($"Setor: {setorData.Setor} | Total Horas: {setorData.TotalHours} | Ocorrências: {setorData.Occurrences} | Média: {mediaSetor}");
-            }
-        }
-
-        Console.WriteLine($"Setores: {string.Join(", ", setores)}");
-        Console.WriteLine($"Médias: {string.Join(", ", mediasPorSetor)}");
-
-        // Calcular média geral
-        double mediaGeral = totalOcorrencias > 0 ? totalHoras / totalOcorrencias : 0;
-        Console.WriteLine($"Média Geral: {mediaGeral}");
-
-        // Preparar série para o gráfico
-        var series = new List<ChartSeries>
-        {
-            new ChartSeries { Name = "Média por Setor", Data = mediasPorSetor.ToArray() }
-        };
-
-        return (mediaGeral, series, setores);
-    }
-    else
-    {
-        // Retornar valores padrão se a fase não for válida
-        Console.WriteLine($"Fase '{fase}' não encontrada ou filtro atual não corresponde.");
-        PrintFilteredByPhase();
-        return (0, new List<ChartSeries>(), new List<string>());
-    }
-}
-
-  
-    private void GerarGraficoFase()
-    {
-        if (!string.IsNullOrEmpty(activePhase))
-        {
-            var result = CalcularMediasPorFase(activePhase);
-            mediaGeral = result.mediaGeral;
-            Series = result.series;
-            setores = result.setores;
-    
-            // Verifique se os dados estão corretos
-            Console.WriteLine("Séries do Gráfico por Fase: " + string.Join(", ", Series.Select(s => s.Name)));
-            Console.WriteLine("Setores: " + string.Join(", ", setores));
-    
-            isChartByPhaseModalVisible = true;
-            StateHasChanged(); // Atualiza a UI com os novos dados
-        }
-        else
-        {
-            Console.WriteLine("Fase selecionada está nula ou vazia.");
-        }
-    }
-    private void OnSelectedIndexChangedByfase(int index)
-    {
-        if (index >= 0 && index < setores.Count)
-        {
-            SelectedSetor = setores[index];
-            SelectedMediaHoras = Series[0].Data[index];
-        }
     }
     
     void OnSelectedIndexChanged(int index)
@@ -701,9 +543,12 @@
     /*GRAFIC VARIABLES AND FUNCTIONS*/
     
     /*FILTERS VARIABLES*/
-    
+    private const string FilterByDateValue = "Por Data";
+    private const string ShowAdoptedValue = "Adotados";
+    private const string ShowAllValue = "Todos";
+
     private DateTime? selectedDate; // Para filtro por data
-    private string selectedPhase; // Para filtro por fase
+    private string? selectedPhase; // Para filtro por fase
     private List<string> phases = new List<string>
     {
         "01 - SOLICITAÇÃO DE CONTRATAÇÃO",
@@ -734,25 +579,11 @@
     private IEnumerable<IGrouping<string, ProtocolData>>? groupedProtocols; // Agrupado por responsável
     private IEnumerable<ProtocolData>? protocolsWithResponsable; // Protocolos com responsável
     private IEnumerable<ProtocolData>? protocolsWithoutResponsable; // Protocolos sem responsável
-    private IEnumerable<ProtocolData>? protocolsInPhase;
+   
      /*FILTERS VARIABLES*/
     
     
     /*FILTERS FUNCTIONS*/
-    
-    private void PrintFilteredByPhase()
-    {
-        foreach (var phase in filteredByPhase)
-        {
-            Console.WriteLine($"Fase: {phase.Key}");
-            Console.WriteLine("Protocolos:");
-    
-            foreach (var protocol in phase.Value)
-            {
-                Console.WriteLine($" - {protocol.Header.Numero}: {protocol.Header.Descricao}");
-            }
-        }
-    }
     
     private IEnumerable<ProtocolData>? filteredBySearch; // Para armazenar os protocolos filtrados por texto
     
@@ -846,15 +677,12 @@
         StateHasChanged(); // Atualiza a interface
     }
     
-    private void FilterByPhase(string activePhase)
+    private void FilterByPhase(string selectedPhase)
     {
         currentFilter = FilterMode.ByPhase;
     
-        // Adicionando um log para verificar a fase ativa
-        Console.WriteLine($"Filtrando por fase: {activePhase}");
-    
-        protocolsInPhase = protocolsList
-            .Where(p => p.Header.Assunto?.Trim().Equals(activePhase.Trim(), StringComparison.OrdinalIgnoreCase) == true)
+        var protocolsInPhase = protocolsList
+            .Where(p => p.Header.Assunto == selectedPhase)
             .ToList();
     
         // Separar os protocolos com e sem responsável
@@ -867,12 +695,9 @@
             .Where(p => string.IsNullOrEmpty(p.Responsavel) || p.Responsavel == "Sem responsavel")
             .ToList();
     
-        // Log para verificação dos protocolos filtrados
-        Console.WriteLine($"Protocolos filtrados na fase: {string.Join(", ", protocolsInPhase.Select(p => p.Header.Assunto))}");
-    
         StateHasChanged(); // Atualiza a interface
     }
-
+    
     private string     GetActiveButtonStyle(string buttonName)
     {
         // Se o botão for o ativo, aplica o estilo extra
@@ -883,19 +708,20 @@
         return string.Empty; // Sem alteração para os botões inativos
     }
     
-    private string     GetPhaseColor(string displayPhase)
+   private string GetPhaseColor(string displayPhase)
+{
+    return displayPhase switch
     {
-      return displayPhase switch
-      {
-        "01 - SOLICITAÇÃO DE CONTRATAÇÃO" => "#ff9306", // Cor para Solicitação
-        "02 - PLANEJAMENTO DE CONTRATAÇÃO" => "#0014c4", // Cor para Planejamento
-        "03 - CONTRATAÇÃO DIRETA" => "#680091", // Cor para Contratação
-        "04 - LICITAÇÃO" => "#dd009b", // Cor para Licitação
-        "05 - EXECUÇÃO" => "#818181", // Cor para Execução
-        "06 - ADITIVO DE CONTRATO" => "#7d9900", // Cor para Aditivo
-        _ => "#6c717d" // Cor padrão se não corresponder
-      };
-    }
+        "01 - SOLICITAÇÃO DE CONTRATAÇÃO" => $"background-color:{Colors.Orange.Accent4};",
+        "02 - PLANEJAMENTO DE CONTRATAÇÃO" => $"background-color:{Colors.Blue.Default};",
+        "03 - CONTRATAÇÃO DIRETA" => $"background-color:{Colors.Purple.Default};",
+        "04 - LICITAÇÃO" => $"background-color:{Colors.Pink.Accent2};",
+        "05 - EXECUÇÃO" => $"background-color:{Colors.Gray.Default};",
+        "06 - ADITIVO DE CONTRATO" => $"background-color:{Colors.Green.Accent4};",
+        _ => $"background-color:{Colors.Blue.Lighten3};"
+    };
+}
+
     
     private void       ShowAdoptedProtocols()
     {
