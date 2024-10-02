@@ -24,14 +24,14 @@
                         Style="@GetPhaseColor(displayPhase)" 
                         Color="Color.Warning" 
                         Value="@phase">
-                    @displayPhase
+                    @displayPhase     
                 </MudChip>
             }
 
                 <MudChip Variant="Variant.Filled" 
                     OnClick="() => FilterByDate()" 
                     Style="@GetActiveButtonStyle(FilterByDateValue)" 
-                    Color="Color.Secondary" 
+                    Color="Color.Dark" 
                     Value="@FilterByDateValue">
                 <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" />
                 Por Data
@@ -40,7 +40,7 @@
                 <MudChip Variant="Variant.Filled" 
                         OnClick="() => ShowAdoptedProtocols()" 
                         Style="@GetActiveButtonStyle(ShowAdoptedValue)" 
-                        Color="Color.Secondary" 
+                        Color="Color.Dark" 
                         Value="@ShowAdoptedValue">
                     <MudIcon Icon="@Icons.Material.Filled.Bookmark" />
                     Marcados por você
@@ -49,7 +49,7 @@
                 <MudChip Variant="Variant.Filled" 
                         OnClick="() => ShowAllProtocols()" 
                         Style="@GetActiveButtonStyle(ShowAllValue)" 
-                        Color="Color.Secondary" 
+                        Color="Color.Dark" 
                         Value="@ShowAllValue">
                     <MudIcon Icon="@Icons.Material.Filled.List" />
                     Todos 
@@ -70,10 +70,10 @@
       foreach (var protocol in filteredBySearch)
       {
           <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
-        <MudCardContent>
-            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
-        </MudCardContent>
-    </MudCard>
+            <MudCardContent>
+                <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+            </MudCardContent>
+          </MudCard>
       }
   }
   
@@ -82,63 +82,161 @@
         @foreach (var protocol in filteredByDate)
         {
           <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
-        <MudCardContent>
-            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
-        </MudCardContent>
-    </MudCard>
-        
-        
-        
-           
+                <div>
+                <MudChip T="string" Variant="Variant.Filled"  Size="Size.Small"
+                   Style="@GetPhaseColor(protocol.Header.Assunto)">
+                </MudChip>
+                
+                <MudCardContent Style=" padding: 1px;">
+                
+                    <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText> 
+                </MudCardContent>
+                </div>
+            </MudCard>
         }
     }
     
     @if (currentFilter == FilterMode.ByPhase && (protocolsWithResponsable?.Any() == true || protocolsWithoutResponsable?.Any() == true))
     {
+      @if(activePhase == "05 - EXECUÇÃO" ){
         
         @if (groupedProtocols != null && groupedProtocols.Any())
-      {
-          foreach (var group in groupedProtocols)
-          {
-              <div class="responsavel-group">
-                  <div class=".responsavel-group h3">
-                    <h3>@GetFirstTwoWords(group.Key)</h3>
-        
-                  @if (group.Any())
-                  {
-                      foreach (var protocol in group)
-                      {
-                        <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
-                            <MudCardContent>
-                                <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
-                            </MudCardContent>
-                        </MudCard>
-                      }
-                  }
-                  else
-                  {
-                    <p>Sem protocolos disponíveis para este responsável.</p>
-                  }
+        {
+            foreach (var group in groupedProtocols)
+            {
+                <div class="responsavel-group">
+                    <div class=".responsavel-group h3">
+                      <h3>@GetFirstTwoWords(group.Key)</h3>
+          
+                    @if (group.Any())
+                    {
+                        foreach (var protocol in group)
+                        {
+                          <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@($"background-color:{MudBlazor.Colors.Gray.Darken1}; color:white;")">>
+                              <MudCardContent>
+                                  <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                              </MudCardContent>
+                          </MudCard>
+                        }
+                    }
+                    else
+                    {
+                      <p>Sem protocolos disponíveis para este responsável.</p>
+                    }
+                </div>
               </div>
+            }
+        }
+       
+        @if (protocolsWithoutResponsable != null && protocolsWithoutResponsable.Any())
+        {
+            <div class="sem-responsavel-group">
+                @foreach (var protocol in protocolsWithoutResponsable)
+                {
+                    <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@($"background-color:{MudBlazor.Colors.Gray.Darken1}; color:white;")">
+                          <MudCardContent>
+                              <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                          </MudCardContent>
+                      </MudCard>
+                }
             </div>
-          }
-      }
-     
-     
-      @if (protocolsWithoutResponsable != null && protocolsWithoutResponsable.Any())
-      {
-          <div class="sem-responsavel-group">
-              @foreach (var protocol in protocolsWithoutResponsable)
-              {
-                  <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
-                        <MudCardContent>
-                            <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
-                        </MudCardContent>
-                    </MudCard>
-              }
-          </div>
+        }
+      
       }
       
+      @if(activePhase == "06 - ADITIVO DE CONTRATO" ){
+        
+        @if (groupedProtocols != null && groupedProtocols.Any())
+        {
+            foreach (var group in groupedProtocols)
+            {
+                <div class="responsavel-group">
+                    <div class=".responsavel-group h3">
+                      <h3>@GetFirstTwoWords(group.Key)</h3>
+          
+                    @if (group.Any())
+                    {
+                        foreach (var protocol in group)
+                        {
+                          <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@($"background-color:{MudBlazor.Colors.Green.Darken1};")">
+                              <MudCardContent>
+                                  <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                              </MudCardContent>
+                          </MudCard>
+                        }
+                    }
+                    else
+                    {
+                      <p>Sem protocolos disponíveis para este responsável.</p>
+                    }
+                </div>
+              </div>
+            }
+        }
+       
+        @if (protocolsWithoutResponsable != null && protocolsWithoutResponsable.Any())
+        {
+            <div class="sem-responsavel-group">
+                @foreach (var protocol in protocolsWithoutResponsable)
+                {
+                    <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@($"background-color:{MudBlazor.Colors.Green.Darken1};")">
+                          <MudCardContent>
+                              <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                          </MudCardContent>
+                      </MudCard>
+                }
+            </div>
+        }
+      
+      } 
+      
+       @if(activePhase != "06 - ADITIVO DE CONTRATO" && activePhase != "05 - EXECUÇÃO" ){
+          @if (groupedProtocols != null && groupedProtocols.Any())
+            {
+                foreach (var group in groupedProtocols)
+                {
+                    <div class="responsavel-group">
+                        <div class=".responsavel-group h3">
+                          <h3>@GetFirstTwoWords(group.Key)</h3>
+              
+                        @if (group.Any())
+                        {
+                            foreach (var protocol in group)
+                            {
+                              <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+                                  <MudCardContent>
+                                      <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                                  </MudCardContent>
+                              </MudCard>
+                            }
+                        }
+                        else
+                        {
+                          <p>Sem protocolos disponíveis para este responsável.</p>
+                        }
+                    </div>
+                  </div>
+                }
+            }
+           
+            @if (protocolsWithoutResponsable != null && protocolsWithoutResponsable.Any())
+            {
+                <div class="sem-responsavel-group">
+                    @foreach (var protocol in protocolsWithoutResponsable)
+                    {
+                        <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
+                              <MudCardContent>
+                                  <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                              </MudCardContent>
+                          </MudCard>
+                    }
+                </div>
+            }
+      
+      
+      
+      }
+     
      
   }
   
@@ -157,7 +255,8 @@
     @if( currentFilter == FilterMode.None && protocolsList != null && protocolsList.Any())
     {
         
-           <MudPaper Height="37px" Width="100%" Style="background-color: transparent; border: none;">
+           <MudPaper Height="100%" Width="100%" Style="background-color: transparent; border: none;">
+                
                 <MudButton OnClick="OpenModal" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.BarChart">                
                 Geral
                 </MudButton>
@@ -166,11 +265,21 @@
         <div>
         @foreach (var protocol in protocolsList)
         {
+          
             <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
-                <MudCardContent>
-                    <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText>
+                <div>
+                <MudChip T="string" Variant="Variant.Filled"  Size="Size.Small"
+                   Style="@GetPhaseColor(protocol.Header.Assunto)">
+                </MudChip>
+                
+                <MudCardContent Style=" padding: 1px;">
+                
+                    <MudText Class="lowercase-text">@TruncateDescription(protocol.Header.Descricao)</MudText> 
                 </MudCardContent>
+                
+                </div>
             </MudCard>
+          
         }
         </div>
     }   
@@ -195,18 +304,44 @@
     {
         <div class="modal">
             <div class="modal-content">
-                <span class="close-button" @onclick="HideProtocolModal">&times;</span>
-                <h3>Protocolo: @selectedProtocol.Header?.Numero</h3>
-                    <p><strong>Interessado:</strong> @selectedProtocol.Header?.Interessado</p>
-                    <p><strong>Solicitante:</strong> @selectedProtocol.Header?.Solicitante</p>
-                    <p><strong>Inspetoria:</strong> @selectedProtocol.Header?.Inspetoria</p>
-                    <p><strong>Assunto:</strong> @selectedProtocol.Header?.Assunto</p>
-                    <p><strong>Origem:</strong> @selectedProtocol.Header?.Origem</p>
-                    <p><strong>Situação:</strong> @selectedProtocol.Header?.Situacao</p>
-                    <p><strong>Destino:</strong> @selectedProtocol.Header?.Destino</p>
-                    <p><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso?</p>
-                    <p><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao?</p>
-                    <p><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</p>
+              <span class="close-button" @onclick="HideProtocolModal">&times;</span>
+              <MudPaper Class="pa-4" Elevation="1">
+                <MudText Typo="Typo.h5" Align="Align.Center" Color="Color.Primary">Protocolo: @selectedProtocol.Header?.Numero</MudText>
+                <MudDivider />
+
+                  <MudGrid>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Interessado:</strong> @selectedProtocol.Header?.Interessado</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Solicitante:</strong> @selectedProtocol.Header?.Solicitante</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Inspetoria:</strong> @selectedProtocol.Header?.Inspetoria</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Assunto:</strong> @selectedProtocol.Header?.Assunto</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Origem:</strong> @selectedProtocol.Header?.Origem</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Situação:</strong> @selectedProtocol.Header?.Situacao</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Destino:</strong> @selectedProtocol.Header?.Destino</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Sigiloso:</strong> @selectedProtocol.Header?.Sigiloso</MudText>
+                      </MudItem>
+                      <MudItem xs="12" sm="6">
+                          <MudText Typo="Typo.body1"><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao</MudText>
+                      </MudItem>
+                      <MudItem xs="12">
+                          <MudText Typo="Typo.body1"><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</MudText>
+                      </MudItem>
+                  </MudGrid>
+              </MudPaper>
                     <div>
                       <button class="button"  @onclick="() => AddToBlacklist(selectedProtocol.Header.Numero)">Remover Da visualisação</button>
                       @if (IsAdopted(selectedProtocol.Header.Numero))
@@ -218,58 +353,63 @@
                           <button class="button" @onclick="() => AddToAdoptedProtocols(selectedProtocol.Header.Numero)">Marcar Para Mim</button>
                       }
                     </div>
-                    <h4>Movimentações:</h4>
-@if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
-{
-    bool isLeft = true;  // Usado para alternar entre esquerda e direita
-
-    <MudTimeline>
-        @foreach (var move in selectedProtocol.Moves.AsEnumerable().Reverse())
-        {
-            <MudTimelineItem Color="Color.Info" Size="Size.Small">
-                <ItemOpposite>
-                    @if (DateTime.TryParse(move.Data, out var dateValue))
-                    {
-                        @if (DateTime.TryParse(move.Hora, out var timeValue))
+                    
+    @if (selectedProtocol.Moves != null && selectedProtocol.Moves.Any())
+    {
+        
+        bool isLeft = true;  // Usado para alternar entre esquerda e direita
+    
+        <MudTimeline style="padding: 20px;">
+            @foreach (var move in selectedProtocol.Moves.AsEnumerable().Reverse())
+            {
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <ItemOpposite>
+                        @if (DateTime.TryParse(move.Data, out var dateValue))
                         {
-                            <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
-                                @dateValue.ToShortDateString() - @timeValue.ToString("HH:mm")
-                            </MudText>
+                            @if (DateTime.TryParse(move.Hora, out var timeValue))
+                            {
+                                <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
+                                    @dateValue.ToShortDateString() - @timeValue.ToString("HH:mm")
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
+                                    @dateValue.ToShortDateString() - Hora inválida
+                                </MudText>
+                            }
                         }
                         else
                         {
                             <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
-                                @dateValue.ToShortDateString() - Hora inválida
+                                Data inválida
                             </MudText>
                         }
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.h6" class="@((isLeft) ? "timeline-item-left" : "")">
-                            Data inválida
-                        </MudText>
-                    }
-                </ItemOpposite>
-                <ItemContent>
-                    <MudText Typo="Typo.h6" GutterBottom="true">Passo: @move.Passo</MudText>
-                    <MudText><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</MudText>
-                    <MudText><strong>Usuário de Destino:</strong> @move.UsuarioDestino</MudText>
-                    <MudText><strong>Setor de Origem:</strong> @move.SetorOrigem</MudText>
-                    <MudText><strong>Setor de Destino:</strong> @move.SetorDestino</MudText>
-                    <MudText><strong>Descrição:</strong> @move.Descricao</MudText>
-                    <MudText><strong>Sigiloso:</strong> @(string.IsNullOrEmpty(move.Sigiloso) ? "Não" : move.Sigiloso == "true" ? "Sim" : "Não")</MudText>
-                </ItemContent>
-            </MudTimelineItem>
-
-            @* Alterna entre esquerda e direita *@
-            isLeft = !isLeft;
-        }
-    </MudTimeline>
-}
-else
-{
-    <p>Nenhuma movimentação encontrada.</p>
-}
+                    </ItemOpposite>
+                    <ItemContent >
+                        <MudText Typo="Typo.h6" GutterBottom="true"><b>Passo:</b> @move.Passo</MudText>
+                        <MudText><strong>Usuário de Origem:</strong> @move.UsuarioOrigem</MudText>
+                        <MudText><strong>Usuário de Destino:</strong> @move.UsuarioDestino</MudText>
+                        <MudText><strong>Setor de Origem:</strong> @move.SetorOrigem</MudText>
+                        <MudText><strong>Setor de Destino:</strong> @move.SetorDestino</MudText>
+                        <MudDivider />
+        
+                        <MudChip Variant="Variant.Filled" Color="Color.Info" T="string">
+                            @move.Descricao
+                        </MudChip>
+                        
+                    </ItemContent>
+                </MudTimelineItem>
+    
+                @* Alterna entre esquerda e direita *@
+                isLeft = !isLeft;
+            }
+        </MudTimeline>
+    }
+    else
+    {
+        <p>Nenhuma movimentação encontrada.</p>
+    }
 
 
 
@@ -713,8 +853,8 @@ else
     return displayPhase switch
     {
         "01 - SOLICITAÇÃO DE CONTRATAÇÃO" => $"background-color:{Colors.Orange.Accent4};",
-        "02 - PLANEJAMENTO DE CONTRATAÇÃO" => $"background-color:{Colors.Blue.Default};",
-        "03 - CONTRATAÇÃO DIRETA" => $"background-color:{Colors.Purple.Default};",
+        "02 - PLANEJAMENTO DE CONTRATAÇÃO" => $"background-color:{Colors.Indigo.Default};",
+        "03 - CONTRATAÇÃO DIRETA" => $"background-color:{Colors.Purple.Accent4};",
         "04 - LICITAÇÃO" => $"background-color:{Colors.Pink.Accent2};",
         "05 - EXECUÇÃO" => $"background-color:{Colors.Gray.Default};",
         "06 - ADITIVO DE CONTRATO" => $"background-color:{Colors.Green.Accent4};",
@@ -940,6 +1080,7 @@ else
 
         return string.Empty; // Retorna vazio se a data não for válida
     }
+  
   protected override async Task OnInitializedAsync()
   {
       await LoadBlacklistFromLocalStorage();
