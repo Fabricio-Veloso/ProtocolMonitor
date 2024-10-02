@@ -167,7 +167,7 @@ display: block;
   justify-content: space-around; 
   padding: 10px;
   background-color: #155bac; 
-  height:fit-content;
+  height:100%;
   overflow-y: auto;
   width: 100%; /* Garante que a div ocupe toda a largura */
   margin: 0; /* Remove qualquer margem que possa estar presente */
@@ -175,7 +175,7 @@ display: block;
 }
 
 .responsavel-group {
-  display: flex;
+  display:inline-flex;
   border: 1px solid #ccc; /* Borda para delimitar o grupo */
   border-radius: 8px; /* Bordas arredondadas */
   padding: 10px; /* Espaçamento interno */
@@ -189,7 +189,7 @@ display: block;
 
 
 .sem-responsavel-group {
-  display: flex;
+  display:inline-flex;
   flex-wrap: wrap; 
   padding-top: 10px; /* Espaçamento acima */
   width: calc(100% - 20px);
@@ -205,7 +205,7 @@ display: block;
 }
 
 .miniprotocol-card {
-  display: flex; 
+  display:; 
   justify-content: center; 
   align-items: center; 
   flex-direction: column; 
@@ -250,7 +250,7 @@ display: block;
 .protocol-card {
   text-transform: lowercase;
   position: relative;
-  display: flex; 
+  display:inline-flex; 
   justify-content:left; 
   align-items:start; 
   flex-direction: column; 

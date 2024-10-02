@@ -6,48 +6,42 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 @using MudBlazor
-
-
-
 @inject IJSRuntime JSRuntime
-<h1 class="title">Protocol Monitor</h1>
+@inject ISnackbar Snackbar
 
-<!--<h2>Tempo restante para a próxima atualização: @timeRemaining.Minutes:@timeRemaining.Seconds</h2>-->
-
-<p>@timeRemaining</p>
-
-@if (isLoading)
+<MudAppBar Height="50px" Width="100%" Style="background-color: rgb(40, 143, 240); display: flex; justify-content: center; align-items: center;">
+    @if (isLoading)
+    {
+      <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+    }
+    @if (isConnecting)
 {
-  <div class="fade-in">
-    <div class="loader"></div> <span>Adicionando novo protocolo</span>
-  </div>
+  <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+  
 }
-@if(isLoading = false){
-  <div class="fade-out">
-    <div class="loader"></div>
-  </div>
-}
-@if (isConnecting)
-{
-  <div class="fade-in">
-    <div class="loader"></div> <span>Estabelecendo conexão com o back-end local</span>
-  </div>
-}
-else if (isConnected && !hasConnectionMessageDisappeared)
-{
-  <div class="fade-out"> <span>Conexão estabelecida!</span>
-  </div>
-}
+    
+    <MudIconButton Icon="@Icons.Material.Filled.ManageAccounts" 
+                   Color="Color.Inherit" 
+                   OnClick="() => ShowConfigModal()" 
+                   Size="Size.Medium" 
+                   Style="margin-left: auto;" />
 
-<div>
-  <form id="textForm" @onsubmit="RequestProtocolData" style="margin-bottom: 20px;">
-    <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="Número do protocolo" class="input-field">
-    <button type="submit" class="button">Adicionar Protocolo</button>
-  </form>
-  <DropDown OnSectorChange="BySectorRequestMiniProtocolData"/> 
-</div>
+    <MudChip T="string" Color="Color.Info" Size="Size.Large">
+        <MudIcon Icon="@Icons.Material.TwoTone.AccessTimeFilled" Title="Tempo Para a Próxima Atualização Periódica" Size="Size.Large" /> @timeRemaining
+    </MudChip>
+    
+    <MudText Typo="Typo.h3" Class="mx-2">Monitor De Protocolos</MudText>
 
-<button @onclick="ShowConfigModal" class="button">Configurações</button>
+    <!-- Botão de configuração com ícone -->
+    
+</MudAppBar>
+
+@if (isConnected && !hasConnectionMessageDisappeared)
+{
+  Snackbar.Clear();
+  Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+  Snackbar.Add("Conexão com o Back-End estabelecida", Severity.Success);
+}
 
 @if (isConfigModalVisible)
 {
@@ -67,6 +61,14 @@ else if (isConnected && !hasConnectionMessageDisappeared)
 
             <button class="button" @onclick="SaveConfigurations">Salvar</button>
             <button class="button" @onclick="LimparProtocolos">Resetar base de dados</button>
+            <DropDown OnSectorChange="BySectorRequestMiniProtocolData"/> 
+        
+            <div>
+              <form id="textForm" @onsubmit="RequestProtocolData" style="margin-bottom: 20px;">
+                <input type="text" id="userInput" @bind="userInput" name="userInput" placeholder="Número do protocolo" class="input-field">
+                <button type="submit" class="button">Adicionar Protocolo</button>
+              </form>
+            </div>
         </div>
     </div>
 }
@@ -77,25 +79,6 @@ else if (isConnected && !hasConnectionMessageDisappeared)
     <ProtocolGrid protocolsList="@protocols" miniprotocolsList="@miniprotocols" Config="@colorConfig" />
   </div>
 }
-
-<!--
-@if (miniprotocols.Any())
-{
-  // Chame um método para atualizar a lista quando a lista de mini protocolos não estiver vazia
-  await async UpdateProtocols();
-}
--->
-
-<!--
-expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual 
-@if (miniprotocols.Any()) // Verifica se há protocolos na lista
-{
-  <div class="fade-in">
-    <MiniProtocolVisualizer miniprotocolsList="@miniprotocols" expectedMoveDate = "@expectativaMovimentacao" currentDate = "@dataAtual" />
-  </div>
-}
--->
-
 
 @if (!protocols.Any() && !miniprotocols.Any())
 {
@@ -138,6 +121,7 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     {
       List<string> listaProtocolosPesquisar = miniprotocols.Select(mp => mp.Numero).ToList();
       await UpdateGridWithFullProtocolsAsync(listaProtocolosPesquisar);
+
     }
     else
     {
@@ -223,6 +207,9 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     ProtocolRequestStatus = false;
     StateHasChanged();
     isUpdating = false;
+    Snackbar.Clear();
+    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    Snackbar.Add("Atualização periódica concluída", Severity.Success);
   }
 
   private async Task StartTimer()
@@ -237,6 +224,9 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     if(isUpdating == false && isLoading == false && protocols.Any()){
      // Quando o tempo acabar, realize a pesquisa de mini protocolos
       await UpdateProtocolsMoves(protocols);
+      Snackbar.Clear();
+      Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+      Snackbar.Add("Realizando Atualizações periódicas", Severity.Info);
     }else{
       Console.WriteLine("Os protoclos estão sendo atualizados, não realizar aa tualização periódica agora");
       
@@ -338,6 +328,11 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
   }
 
   private async Task UpdateGridWithFullProtocolsAsync(List<string> protocolList){
+    
+    Snackbar.Clear();
+    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    Snackbar.Add("Completando Protocolos", Severity.Info);
+
     ProtocolRequestStatus = true;
     isLoading = true;
     receivedMessage = null;
@@ -381,6 +376,9 @@ expectedMoveDate =@expectativaMovimentacao currentDate =@dataAtual
     ProtocolRequestStatus = false;
     StateHasChanged();
     Console.WriteLine("Todos os MiniProtocolos foram subistituídos por Protocolos completos, iniciando Timer para atualizações periódicas");
+     Snackbar.Clear();
+    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    Snackbar.Add("Protocolos Parciais Pesquisados", Severity.Success);
     if(isUpdating == false){
     await StartTimer();
     }
