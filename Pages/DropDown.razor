@@ -1,3 +1,6 @@
+@inject IJSRuntime JSRuntime
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
 @code {
     [Parameter]
     public Func<string, Task> OnSectorChange { get; set; }
@@ -5,9 +8,19 @@
     private async Task ProcessSector(ChangeEventArgs e)
     {
         var selectedSector = e.Value.ToString();
-        if (OnSectorChange != null)
+        if (OnSectorChange != null && selectedSector != null)
         {
+            await SaveSectorToCache(selectedSector);
             await OnSectorChange.Invoke(selectedSector);
+        }
+    }
+    
+    private async Task  SaveSectorToCache(string sector)
+    {
+        // Armazena o setor no localStorage
+        if (!string.IsNullOrEmpty(sector))
+        {
+           await localStorage.SetItemAsync("selectedSector", sector);
         }
     }
 }
@@ -15,7 +28,8 @@
 
 <select @onchange="ProcessSector">
     <option value="Seu Setor">Seu Setor</option>
-    <option value="Licitações">Licitações</option>
+    <option value="Licitacao">Licitações</option>
+    <option value="Fiscalizacao">Fiscalização</option>
     
     <!-- Adicione mais opções aqui se necessário -->
 </select>
