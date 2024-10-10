@@ -15,10 +15,10 @@
       <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
     }
     @if (isConnecting)
-{
-  <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
-  
-}
+    {
+      <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+      
+    }
     
     <MudIconButton Icon="@Icons.Material.Filled.ManageAccounts" 
                    Color="Color.Inherit" 
@@ -76,7 +76,7 @@
 @if (protocols.Any() || miniprotocols.Any()) // Verifica se há protocolos na lista
 {
   <div class="fade-in">
-    <ProtocolGrid protocolsList="@protocols" miniprotocolsList="@miniprotocols" Config="@colorConfig" />
+    <ProtocolGrid protocolsList="@protocols" miniprotocolsList="@miniprotocols" Config="@colorConfig"  />
   </div>
 }
 
@@ -95,6 +95,7 @@
   private bool isConnected = false; // Estado para conexão
   private bool hasConnectionMessageDisappeared = false; // Estado para controle de mensagem
   private string? receivedMessage;
+  private string? savedSector;
   
   private ProtocolData protocolInstance = new ProtocolData();
   private List<ProtocolData> protocols = new List<ProtocolData>();
@@ -390,12 +391,17 @@
     isLoading = true;
     receivedMessage = null;
     StateHasChanged();
+    
+    Snackbar.Clear();
+    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    Snackbar.Add("Buscando protocolos de interesse do seu  setor", Severity.Info);
   
     await WebSocketService.SendAsync("BySectorMiniProtocolsScrape " + sector);
     receivedMessage = await WebSocketService.ReceiveAsync();
   
     if (!string.IsNullOrEmpty(receivedMessage)) {
       Console.WriteLine(" Resultado da busca por miniprotocolos, enviada - Mensagem Recebida do Back-end Node");
+      
   
       // Crie uma nova instância de ProtocolData para cada novo protocolo recebido
       var newMiniProtocolList = new List<MiniProtocolData>();
@@ -441,6 +447,7 @@
     StateHasChanged();
   }
 
+
   protected override async Task OnInitializedAsync() {
     
     var savedProtocols = await localStorage.GetItemAsync<List<ProtocolData>>("protocols");
@@ -459,6 +466,8 @@
       colorConfig = savedConfig;
       expectativaMovimentacao = DateTime.Now.AddDays(colorConfig.ConfigExpectativaMovimentacao ?? 0);
     }
+    
+    
     
     await TryConnectWebSocket();
     

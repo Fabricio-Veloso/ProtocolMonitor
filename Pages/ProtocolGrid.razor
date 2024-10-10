@@ -2,31 +2,29 @@
 @inject IJSRuntime JSRuntime
 @using MudBlazor
 @inject ISnackbar Snackbar
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-
-
-    
-  
-  
-    
-  
-    
-    
   <div class="miniprotocol-grid">
     
     <div>
         <MudChipSet T="string" Class="mud-typography" CheckMark SelectionMode="SelectionMode.ToggleSelection">
-            @foreach (var phase in phases)
-            {
-                var displayPhase = phase.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS - CREA-PE - 0", "").Trim();
-                <MudChip Variant="Variant.Filled" 
-                        OnClick="@(() => SetActivePhase(phase))" 
-                        Style="@GetPhaseColor(displayPhase)" 
-                        Color="Color.Warning" 
-                        Value="@phase">
-                    @displayPhase     
-                </MudChip>
+            
+            @if(savedSector == "Licitacao"){
+              @foreach (var phase in phases)
+              {
+                  var displayPhase = phase.Replace("PROCESSO DE AQUISIÇÕES DE BENS E SERVIÇOS - PABS - CREA-PE - 0", "").Trim();
+                  <MudChip Variant="Variant.Filled" 
+                          OnClick="@(() => SetActivePhase(phase))" 
+                          Style="@GetPhaseColor(displayPhase)" 
+                          Color="Color.Warning" 
+                          Value="@phase">
+                      @displayPhase     
+                  </MudChip>
+              }
+            }else{
+            Console.WriteLine("O setor não é de licitações");
             }
+            
 
                 <MudChip Variant="Variant.Filled" 
                     OnClick="() => FilterByDate()" 
@@ -67,6 +65,7 @@
     
     @if (filteredBySearch != null && filteredBySearch.Any())
   {
+      <MudPaper Height="100%" Width="100%" Style="background-color: transparent; border: none;"></MudPaper>
       foreach (var protocol in filteredBySearch)
       {
           <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
@@ -79,6 +78,7 @@
   
     @if (currentFilter == FilterMode.ByDate && filteredByDate != null && filteredByDate.Any())
     {
+         <MudPaper Height="100%" Width="100%" Style="background-color: transparent; border: none;"></MudPaper>
         @foreach (var protocol in filteredByDate)
         {
           <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
@@ -242,6 +242,7 @@
   
     @if (currentFilter == FilterMode.Adopted && adoptedProtocols != null && adoptedProtocols.Any())
     {
+        <MudPaper Height="100%" Width="100%" Style="background-color: transparent; border: none;"></MudPaper>
         foreach (var protocol in adoptedProtocols)
         {
             <MudCard class="protocol-card" Outlined="true" @onclick="() => ShowProtocolModal(protocol)" Style="@GetColorClass(protocol.GetDataUltimoMovimento())">
@@ -286,6 +287,7 @@
     
     @if (miniProtocolsList != null && miniProtocolsList.Any() && currentFilter == FilterMode.None)
   {
+      <MudPaper Height="100%" Width="100%" Style="background-color: transparent; border: none;"></MudPaper>
       foreach (var miniProtocol in miniProtocolsList.Where(p => !IsInBlacklist(p.Numero)))
       {
           <div class="miniprotocol-card @(GetColorClass(miniProtocol.DataUltimoMovimento))"
@@ -338,7 +340,7 @@
                           <MudText Typo="Typo.body1"><strong>Data de Emissão:</strong> @selectedProtocol.Header?.DataEmissao</MudText>
                       </MudItem>
                       <MudItem xs="12">
-                          <MudText Typo="Typo.body1"><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</MudText>
+                          <MudText Typo="Typo.body1" Color="Color.Info"><strong>Descrição:</strong> @selectedProtocol.Header?.Descricao</MudText>
                       </MudItem>
                   </MudGrid>
               </MudPaper>
@@ -394,10 +396,14 @@
                         <MudText><strong>Setor de Destino:</strong> @move.SetorDestino</MudText>
                         <MudDivider />
         
-                        <MudChip Variant="Variant.Filled" Color="Color.Info" T="string">
+                        <MudText Typo="Typo.body2" GutterBottom="true" Class="description-text" Color="Color.Info">
                             @move.Descricao
-                        </MudChip>
-                        
+                        </MudText>
+                        <style>
+                            .description-text {
+                                white-space: pre-wrap; /* Para quebrar as linhas conforme necessário */
+                            }
+                        </style>
                     </ItemContent>
                 </MudTimelineItem>
     
@@ -476,6 +482,7 @@
 
 
 @code {
+
     [Parameter]
     public List<MiniProtocolData> miniProtocolsList { get; set; } = new List<MiniProtocolData>();
 
@@ -485,9 +492,8 @@
     [Parameter]
     public ByTimeColorConfig Config { get; set; }
     
-    [Parameter]
-    public string sector { get; set; }
-    
+   
+    private string savedSector = string.Empty;
     
 
     /*MODAL VARIABLES*/
@@ -1080,12 +1086,22 @@
 
         return string.Empty; // Retorna vazio se a data não for válida
     }
+    
+    private async Task GetSectorFromCache()
+    {
+        // Recupera o setor armazenado no localStorage, se existir
+        var storedSector = await localStorage.GetItemAsync<String>("selectedSector");
+         savedSector = storedSector ?? "Nem um setor foi selecionado"; // Define um valor padrão se nada for encontrado
+         Console.WriteLine("setor recolhido:"+savedSector);
+    }
   
   protected override async Task OnInitializedAsync()
   {
       await LoadBlacklistFromLocalStorage();
       
       await LoadAdoptedProtocolsFromLocalStorage();
+      
+      await GetSectorFromCache();
   }
  /*Data functions*/
 }
