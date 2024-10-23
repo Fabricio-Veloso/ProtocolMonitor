@@ -216,7 +216,8 @@ display: block;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
   cursor: pointer;
   transition: transform 0.3s ease, background-color 0.3s ease; 
-  color: white; 
+  color: rgb(105, 245, 40); 
+  
   font-size: 0.9rem; 
   overflow: hidden; 
   padding: 5px; /* Aumenta o padding do cartão */
