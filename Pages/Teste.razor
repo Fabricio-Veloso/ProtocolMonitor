@@ -1,57 +1,19 @@
 @page "/teste"
-@inherits LayoutComponentBase
-
-@using System.Threading.Tasks
-@using System.Text.Json
-@using MyBlazorPwa
-
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
-@inject NavigationManager navigationManager
 @inject IJSRuntime JSRuntime
 
-<MudAppBar Fixed="true" Bottom="false" Color="Color.Primary">
-    <MudText Typo="Typo.h6">WebRTC Data Channel Test</MudText>
-</MudAppBar>
+<h3>WebRTC Test</h3>
 
-<div>
-    <button @onclick="CreateConnection">Create Connection</button>
-    <button @onclick="SendMessage">Send Message</button>
-    <input @bind="messageToSend" placeholder="Type your message here..." />
-</div>
-
-<div>
-    <h4>Received Messages:</h4>
-    <ul>
-        @foreach (var message in receivedMessages)
-        {
-            <li>@message</li>
-        }
-    </ul>
-</div>
+<div id="messages"></div>
+<button @onclick="StartConnection">Iniciar Conexão</button>
 
 @code {
-    private string messageToSend;
-    private List<string> receivedMessages = new();
-
-    private async Task CreateConnection()
+    protected override async Task OnInitializedAsync()
     {
-        await JSRuntime.InvokeVoidAsync("createConnection");
+        await JSRuntime.InvokeVoidAsync("webrtc.initialize");
     }
 
-    private async Task SendMessage()
+    private async Task StartConnection()
     {
-        if (!string.IsNullOrEmpty(messageToSend))
-        {
-            await JSRuntime.InvokeVoidAsync("sendMessage", messageToSend);
-            messageToSend = string.Empty;
-        }
-    }
-
-    // Corrigido: Adicionei o atributo [JSInvokable] aqui
-    [JSInvokable("ReceiveMessage")]
-    public void ReceiveMessage(string message)
-    {
-        receivedMessages.Add(message);
-        InvokeAsync(StateHasChanged);
+        await JSRuntime.InvokeVoidAsync("webrtc.createConnection");
     }
 }
